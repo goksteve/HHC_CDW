@@ -1,0 +1,11 @@
+EXEC dbm.drop_tables('LKP_ADULTPEDS');
+
+CREATE TABLE lkp_AdultPeds
+(
+  AdultPedsKey NUMBER(10,0) CONSTRAINT pk_AdultPeds PRIMARY KEY,
+  AdultPedsInd VARCHAR2(1000)
+) ORGANIZATION INDEX;
+
+GRANT SELECT ON lkp_AdultPeds TO PUBLIC;
+
+

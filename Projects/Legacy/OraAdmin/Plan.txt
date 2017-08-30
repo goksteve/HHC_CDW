@@ -1,0 +1,86 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name              | Rows  | Bytes | Cost (%CPU)| Time     | Pstart| Pstop |    TQ  |IN-OUT| PQ Distrib |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+|   0 | INSERT STATEMENT                      |                   |       |       |  1916K(100)|          |       |       |        |      |            |
+|   1 |  PX COORDINATOR                       |                   |       |       |            |          |       |       |        |      |            |
+|   2 |   PX SEND QC (RANDOM)                 | :TQ10011          |    43M|    82G|  1916K  (1)|999:59:59 |       |       |  Q1,11 | P->S | QC (RAND)  |
+|   3 |    LOAD AS SELECT                     |                   |       |       |            |          |       |       |  Q1,11 | PCWP |            |
+|*  4 |     HASH JOIN RIGHT OUTER             |                   |    43M|    82G|  1916K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|   5 |      PX RECEIVE                       |                   |   127K|  3350K|   101   (0)| 02:15:14 |       |       |  Q1,11 | PCWP |            |
+|   6 |       PX SEND BROADCAST               | :TQ10005          |   127K|  3350K|   101   (0)| 02:15:14 |       |       |  Q1,05 | P->P | BROADCAST  |
+|   7 |        PX BLOCK ITERATOR              |                   |   127K|  3350K|   101   (0)| 02:15:14 |       |       |  Q1,05 | PCWC |            |
+|*  8 |         TABLE ACCESS FULL             | TST_BIRAD_RESULTS |   127K|  3350K|   101   (0)| 02:15:14 |       |       |  Q1,05 | PCWP |            |
+|*  9 |      HASH JOIN RIGHT OUTER            |                   |    43M|    81G|  1916K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|  10 |       PX RECEIVE                      |                   | 66398 |  1750K|    51   (0)| 01:08:17 |       |       |  Q1,11 | PCWP |            |
+|  11 |        PX SEND BROADCAST              | :TQ10006          | 66398 |  1750K|    51   (0)| 01:08:17 |       |       |  Q1,06 | P->P | BROADCAST  |
+|  12 |         PX BLOCK ITERATOR             |                   | 66398 |  1750K|    51   (0)| 01:08:17 |       |       |  Q1,06 | PCWC |            |
+|* 13 |          TABLE ACCESS FULL            | VALUE_DECODE      | 66398 |  1750K|    51   (0)| 01:08:17 |       |       |  Q1,06 | PCWP |            |
+|  14 |       VIEW                            |                   |    43M|    80G|  1916K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|* 15 |        HASH JOIN RIGHT OUTER          |                   |    43M|    10G|  1916K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|  16 |         PX RECEIVE                    |                   |   126K|  3455K|   171   (0)| 03:48:56 |       |       |  Q1,11 | PCWP |            |
+|  17 |          PX SEND BROADCAST            | :TQ10007          |   126K|  3455K|   171   (0)| 03:48:56 |       |       |  Q1,07 | P->P | BROADCAST  |
+|  18 |           PX BLOCK ITERATOR           |                   |   126K|  3455K|   171   (0)| 03:48:56 |       |       |  Q1,07 | PCWC |            |
+|* 19 |            TABLE ACCESS FULL          | RESULT_FIELD      |   126K|  3455K|   171   (0)| 03:48:56 |       |       |  Q1,07 | PCWP |            |
+|* 20 |         HASH JOIN                     |                   |    43M|     9G|  1915K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|  21 |          PX RECEIVE                   |                   |    52 |  1040 |     3   (0)| 00:04:01 |       |       |  Q1,11 | PCWP |            |
+|  22 |           PX SEND BROADCAST           | :TQ10008          |    52 |  1040 |     3   (0)| 00:04:01 |       |       |  Q1,08 | P->P | BROADCAST  |
+|  23 |            PX BLOCK ITERATOR          |                   |    52 |  1040 |     3   (0)| 00:04:01 |       |       |  Q1,08 | PCWC |            |
+|* 24 |             TABLE ACCESS FULL         | KARDEX_GROUP      |    52 |  1040 |     3   (0)| 00:04:01 |       |       |  Q1,08 | PCWP |            |
+|* 25 |          HASH JOIN OUTER              |                   |    43M|  9168M|  1915K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|  26 |           PX RECEIVE                  |                   |  6280K|  1036M|   645K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|  27 |            PX SEND HASH               | :TQ10009          |  6280K|  1036M|   645K  (1)|999:59:59 |       |       |  Q1,09 | P->P | HASH       |
+|* 28 |             HASH JOIN BUFFERED        |                   |  6280K|  1036M|   645K  (1)|999:59:59 |       |       |  Q1,09 | PCWP |            |
+|  29 |              PX RECEIVE               |                   |    15 |   240 |     3   (0)| 00:04:01 |       |       |  Q1,09 | PCWP |            |
+|  30 |               PX SEND BROADCAST       | :TQ10001          |    15 |   240 |     3   (0)| 00:04:01 |       |       |  Q1,01 | P->P | BROADCAST  |
+|  31 |                PX BLOCK ITERATOR      |                   |    15 |   240 |     3   (0)| 00:04:01 |       |       |  Q1,01 | PCWC |            |
+|* 32 |                 TABLE ACCESS FULL     | PROC_TYPE         |    15 |   240 |     3   (0)| 00:04:01 |       |       |  Q1,01 | PCWP |            |
+|* 33 |              HASH JOIN                |                   |  6280K|   940M|   645K  (1)|999:59:59 |       |       |  Q1,09 | PCWP |            |
+|  34 |               PX RECEIVE              |                   | 16866 |   691K|    82   (0)| 01:49:47 |       |       |  Q1,09 | PCWP |            |
+|  35 |                PX SEND BROADCAST      | :TQ10002          | 16866 |   691K|    82   (0)| 01:49:47 |       |       |  Q1,02 | P->P | BROADCAST  |
+|  36 |                 PX BLOCK ITERATOR     |                   | 16866 |   691K|    82   (0)| 01:49:47 |       |       |  Q1,02 | PCWC |            |
+|* 37 |                  TABLE ACCESS FULL    | PROC              | 16866 |   691K|    82   (0)| 01:49:47 |       |       |  Q1,02 | PCWP |            |
+|* 38 |               HASH JOIN               |                   |  6280K|   688M|   645K  (1)|999:59:59 |       |       |  Q1,09 | PCWP |            |
+|  39 |                PX RECEIVE             |                   |  8774K|   711M|   250K  (1)|999:59:59 |       |       |  Q1,09 | PCWP |            |
+|  40 |                 PX SEND HASH          | :TQ10003          |  8774K|   711M|   250K  (1)|999:59:59 |       |       |  Q1,03 | P->P | HASH       |
+|* 41 |                  HASH JOIN            |                   |  8774K|   711M|   250K  (1)|999:59:59 |       |       |  Q1,03 | PCWP |            |
+|  42 |                   PX RECEIVE          |                   |   467K|    25M|   346   (0)| 07:43:14 |       |       |  Q1,03 | PCWP |            |
+|  43 |                    PX SEND BROADCAST  | :TQ10000          |   467K|    25M|   346   (0)| 07:43:14 |       |       |  Q1,00 | P->P | BROADCAST  |
+|  44 |                     PX BLOCK ITERATOR |                   |   467K|    25M|   346   (0)| 07:43:14 |     1 |  LAST |  Q1,00 | PCWC |            |
+|* 45 |                      TABLE ACCESS FULL| DSRIP_DIM_VISIT   |   467K|    25M|   346   (0)| 07:43:14 |     1 |    25 |  Q1,00 | PCWP |            |
+|  46 |                   PX BLOCK ITERATOR   |                   |   325M|  8679M|   250K  (1)|999:59:59 |       |       |  Q1,03 | PCWC |            |
+|* 47 |                    TABLE ACCESS FULL  | EVENT             |   325M|  8679M|   250K  (1)|999:59:59 |       |       |  Q1,03 | PCWP |            |
+|  48 |                PX RECEIVE             |                   |   232M|  6645M|   394K  (0)|999:59:59 |       |       |  Q1,09 | PCWP |            |
+|  49 |                 PX SEND HASH          | :TQ10004          |   232M|  6645M|   394K  (0)|999:59:59 |       |       |  Q1,04 | P->P | HASH       |
+|  50 |                  PX BLOCK ITERATOR    |                   |   232M|  6645M|   394K  (0)|999:59:59 |       |       |  Q1,04 | PCWC |            |
+|* 51 |                   TABLE ACCESS FULL   | PROC_EVENT        |   232M|  6645M|   394K  (0)|999:59:59 |       |       |  Q1,04 | PCWP |            |
+|  52 |           PX RECEIVE                  |                   |  1623M|    69G|  1270K  (1)|999:59:59 |       |       |  Q1,11 | PCWP |            |
+|  53 |            PX SEND HASH               | :TQ10010          |  1623M|    69G|  1270K  (1)|999:59:59 |       |       |  Q1,10 | P->P | HASH       |
+|  54 |             PX BLOCK ITERATOR         |                   |  1623M|    69G|  1270K  (1)|999:59:59 |     1 |1048575|  Q1,10 | PCWC |            |
+|* 55 |              TABLE ACCESS FULL        | RESULT            |  1623M|    69G|  1270K  (1)|999:59:59 |     1 |1048575|  Q1,10 | PCWP |            |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - access("BR"."DATA_ELEMENT_ID"="from$_subquery$_016"."QCSJ_C000000001600000" AND "BR"."EVENT_ID"="from$_subquery$_016"."EVENT_ID" AND 
+              "BR"."VISIT_ID"="from$_subquery$_016"."QCSJ_C000000001400001")
+   8 - access(:Z>=:Z AND :Z<=:Z)
+   9 - access("VD"."ENCODED_VALUE"="R"."VALUE" AND "VD"."DECODE_SOURCE_ID"="RF"."DECODE_SOURCE_ID")
+  13 - access(:Z>=:Z AND :Z<=:Z)
+  15 - access("RF"."DATA_ELEMENT_ID"="R"."DATA_ELEMENT_ID")
+  19 - access(:Z>=:Z AND :Z<=:Z)
+  20 - access("KG"."KARDEX_GROUP_ID"="PR"."KARDEX_GROUP_ID")
+  24 - access(:Z>=:Z AND :Z<=:Z)
+  25 - access("R"."EVENT_ID"="PE"."EVENT_ID" AND "R"."VISIT_ID"="PE"."VISIT_ID")
+  28 - access("PT"."PROC_TYPE_ID"="PR"."PROC_TYPE_ID")
+  32 - access(:Z>=:Z AND :Z<=:Z)
+  33 - access("PR"."PROC_ID"="PE"."PROC_ID")
+  37 - access(:Z>=:Z AND :Z<=:Z)
+       filter("PR"."KARDEX_GROUP_ID" IS NOT NULL)
+  38 - access("PE"."VISIT_ID"="E"."VISIT_ID" AND "PE"."EVENT_ID"="E"."EVENT_ID")
+  41 - access("E"."VISIT_ID"="V"."VISIT_ID")
+  45 - access(:Z>=:Z AND :Z<=:Z)
+  47 - access(:Z>=:Z AND :Z<=:Z)
+  51 - access(:Z>=:Z AND :Z<=:Z)
+  55 - access(:Z>=:Z AND :Z<=:Z)
+ 

@@ -1,0 +1,1 @@
+http://intermediatesql.com/performance/how-to-track-sql-performance-part-3-getting-down-to-business/#more-857
