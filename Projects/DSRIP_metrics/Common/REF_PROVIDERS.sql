@@ -1,10 +1,3 @@
-rename REF_PROVIDERS to stg_providers;
-
-select network, provider_id, count(1) cnt
-from stg_providers
-group by network, provider_id 
-having count(1)>1;
-
 drop table ref_providers purge;
 
 CREATE TABLE REF_PROVIDERS

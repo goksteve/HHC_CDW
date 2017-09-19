@@ -1,5 +1,9 @@
 alter session set current_schema = pt008;
 
+UPDATE dbg_process_logs set result = 'Cancelled', end_time = systimestamp where proc_id = 2;
+commit;
+ 
+
 select
   proc_id, name,
 --  comment_txt, 
@@ -19,14 +23,13 @@ from
   ( 
     select l.*, nvl(end_time, systimestamp) - start_time diff 
     from dbg_process_logs l
-    where name = 'SP_REFRESH_EDD_STATS'
-    and start_time > systimestamp - interval '4' day
+--    where name = 'SP_REFRESH_EDD_STATS' and start_time > systimestamp - interval '4' day
   )
 )
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 76
+where proc_id = 1
 order by tstamp;
 
 select *

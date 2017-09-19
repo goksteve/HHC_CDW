@@ -38,4 +38,4 @@ select -
   load_date, -
   source -
 FROM provider_dimension -
-WHERE network = 'CBN';
+WHERE network = 'SMN';

@@ -1,0 +1,1 @@
+sqlplus pt005/pt5123@higgsdv3 @copy_table.sql %1%
