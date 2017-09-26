@@ -11,3 +11,7 @@ select * from meta_changes;
 select * from meta_lists_h;
 
 select * from meta_list_items_h;
+
+select * from dsrip_reports;
+
+select * from meta_logic;
