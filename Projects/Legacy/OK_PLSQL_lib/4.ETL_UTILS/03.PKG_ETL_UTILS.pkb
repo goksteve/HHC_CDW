@@ -6,6 +6,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
   History of changes (newest to oldest):
   ------------------------------------------------------------------------------
   30-MAR-2017, OK: fix
+  20-SEP-2017, OK: fix
 */
   -- Procedure RESOLVE_NAME resolves the given table/view/synonym name
   -- into complete description of the underlying table/view:
@@ -342,7 +343,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
         WHERE ('||l_pk_cols||') NOT IN
         (
           SELECT '||l_pk_cols||'
-          FROM '||i_src||' '||i_whr||'
+          FROM '||l_src_tname||' '||i_whr||'
         )';
         
         xl.begin_action('Executing command', l_cmd);
@@ -357,7 +358,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       l_cmd := '
       DECLARE
         CURSOR cur IS
-        SELECT '||l_hint2||' '||REPLACE(LOWER(l_ins_cols), 'q.')||' FROM '||NVL(l_view_name, i_src)||' q '||i_whr||';
+        SELECT '||l_hint2||' '||REPLACE(LOWER(l_ins_cols), 'q.')||' FROM '||l_src_tname||' q '||i_whr||';
          
         TYPE buffer_type IS TABLE OF cur%ROWTYPE;
          
@@ -416,7 +417,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       ELSE '
       INSERT '||l_hint1||'
       INTO '||i_tgt||'('||REPLACE(l_ins_cols, 'q.')||')
-      SELECT '||l_hint2||' '||l_ins_cols||' FROM '||i_src||' q '||i_whr
+      SELECT '||l_hint2||' '||l_ins_cols||' FROM '||l_src_tname||' q '||i_whr
       END || CASE WHEN l_err_tname IS NOT NULL THEN '
       LOG ERRORS INTO '||l_err_schema||'.'||l_err_tname||' (:tag) REJECT LIMIT UNLIMITED' END;
       

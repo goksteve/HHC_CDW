@@ -1,6 +1,7 @@
 alter session set current_schema = pt008;
 
-UPDATE dbg_process_logs set result = 'Cancelled', end_time = systimestamp where proc_id = 2;
+UPDATE dbg_process_logs set result = 'Cancelled', end_time = systimestamp
+where end_time is null;
 commit;
  
 
@@ -29,16 +30,16 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 1
-order by tstamp;
+where proc_id = 42
+order by tstamp desc;
 
 select *
 from
 (
   select proc_id, action, seconds 
   from dbg_performance_data 
-  where proc_id >= 50
-  and action like 'Adding%'
+  where proc_id = 40
+--  and action like 'Adding%'
   order by seconds desc
 )
 pivot 
