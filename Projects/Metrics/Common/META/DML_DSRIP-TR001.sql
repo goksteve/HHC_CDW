@@ -10,3 +10,5 @@ INSERT INTO dsrip_reports VALUES
   NULL,
   NULL
 );
+
+COMMIT;
