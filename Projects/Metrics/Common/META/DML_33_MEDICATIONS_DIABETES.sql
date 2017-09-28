@@ -3,6 +3,7 @@ INSERT INTO meta_criteria VALUES(33, 'MEDICATIONS:DIABETES', 'List of Medication
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%acarbose%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%actoplus%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%actos%', 'Diabetes medication', 'MED', 'LIKE', 'I');
+INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%afrezza%', 'Diabetes medication', 'EI', '=', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%albiglutide%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%alogliptin %', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%amaryl%', 'Diabetes medication', 'MED', 'LIKE', 'I');
@@ -39,7 +40,7 @@ INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%glyxambi%', 'Diabetes me
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%humalog%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%humulin  %', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%insulin %', 'Diabetes medication', 'MED', 'LIKE', 'I');
-INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%invokamet%', 'Diabetes medication', 'MED', 'LIKE', 'I');
+INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%invokamet%', 'Diabetes medication', 'EI', '=', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%invokana%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%janumet%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%januvia%', 'Diabetes medication', 'MED', 'LIKE', 'I');
@@ -52,6 +53,7 @@ INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%lantus%', 'Diabetes medi
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%levemir%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%linagliptin%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%liraglutide%', 'Diabetes medication', 'MED', 'LIKE', 'I');
+INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%lispro%', 'Diabetes medication', 'EI', '=', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%metaglip%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%metformin%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%micronase%', 'Diabetes medication', 'MED', 'LIKE', 'I');
@@ -74,9 +76,11 @@ INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%riomet%', 'Diabetes medi
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%rosiglitazone%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%ryzodeg %', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%saxagliptin%', 'Diabetes medication', 'MED', 'LIKE', 'I');
+INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%saxenda%', 'Diabetes medication', 'EI', '=', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%simvastatin %', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%sitagliptin%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%starlix%', 'Diabetes medication', 'MED', 'LIKE', 'I');
+INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%symlin%', 'Diabetes medication', 'EI', '=', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%symlinpen%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%synjardy%', 'Diabetes medication', 'MED', 'LIKE', 'I');
 INSERT INTO meta_conditions VALUES(33, 'ALL', 'NONE', '%tanzeum%', 'Diabetes medication', 'MED', 'LIKE', 'I');

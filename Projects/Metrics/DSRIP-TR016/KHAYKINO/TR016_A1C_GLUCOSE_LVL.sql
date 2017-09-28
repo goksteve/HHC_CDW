@@ -21,7 +21,7 @@ FROM
     ADD_MONTHS(TRUNC(SYSDATE, 'MONTH'),-12) start_dt
   FROM v$database
 ) db
-JOIN meta_conditions mc ON mc.network = db.network AND mc.criterion_id IN (4, 23) -- A1C and Glucose Level procedures
+JOIN meta_conditions mc ON mc.network = db.network AND mc.criterion_id IN (4, 23) -- A1C and Glucose Level results
 JOIN ud_master.result r ON r.data_element_id = mc.value
 JOIN ud_master.event e ON e.visit_id = r.visit_id AND e.event_id = r.event_id AND e.date_time >= db.start_dt
 JOIN ud_master.visit v ON v.visit_id = r.visit_id;

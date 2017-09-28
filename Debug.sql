@@ -30,7 +30,7 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 42
+where proc_id = 43
 order by tstamp desc;
 
 select *
@@ -56,3 +56,7 @@ group by ora_err_mesg$;
 select ora_err_mesg$, count(1) cnt from err_edd_fact_metric_values
 where ora_err_tag$ = '37'
 group by ora_err_mesg$;
+
+select * from meta_changes;
+
+select * from meta_conditions_h where change_id = 2;

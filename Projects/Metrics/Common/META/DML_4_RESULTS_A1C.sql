@@ -1,4 +1,4 @@
-INSERT INTO meta_criteria VALUES(4, 'RESULTS:DIABETES A1C', 'List of Procedures, Elements  for A1C tests');
+INSERT INTO meta_criteria VALUES(4, 'RESULTS:DIABETES A1C', 'List of Data Elements for A1C tests');
 
 INSERT INTO meta_conditions VALUES(4, 'CBN', 'NONE', 'AD/1951/9', 'Most Recent Hgb A1C', 'EI', '=', 'I');
 INSERT INTO meta_conditions VALUES(4, 'CBN', 'NONE', 'AG/1353/2/1155/1', 'Hgb A1C  (%)', 'EI', '=', 'I');

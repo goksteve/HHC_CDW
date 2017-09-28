@@ -20,7 +20,7 @@ select
   nvl2(value_description, ''''||value_description||'''', 'NULL')||', '''||
   condition_type_cd||''', '''||comparison_operator||''', '''||include_exclude_ind||''');' ins
 from meta_conditions
-where criterion_id = 34
+where criterion_id = 23
 order by criterion_id, network, qualifier, value;
 
 -- META_LOGIC:
