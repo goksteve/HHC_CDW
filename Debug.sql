@@ -47,16 +47,3 @@ pivot
   max(seconds)
   for proc_id in (50, 51, 55)
 );
-
-select ora_err_mesg$, count(1) cnt
-from err_edd_fact_visits
-where ora_err_tag$ = '29'
-group by ora_err_mesg$;
---select * from err_edd_fact_stats
-select ora_err_mesg$, count(1) cnt from err_edd_fact_metric_values
-where ora_err_tag$ = '37'
-group by ora_err_mesg$;
-
-select * from meta_changes;
-
-select * from meta_conditions_h where change_id = 2;

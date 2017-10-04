@@ -3,12 +3,14 @@ ALTER SESSION ENABLE PARALLEL DDL;
 
 set timi on
 
-DROP TABLE tst_ok_prescriptions PURGE;
+DROP TABLE ref_prescriptions PURGE;
 
-CREATE TABLE tst_ok_prescriptions
+CREATE TABLE ref_prescriptions
 (
   network,
+  facility_id,
   patient_id,
+  mrn,
   order_dt,
   drug_name,
   drug_description,
@@ -36,7 +38,9 @@ SUBPARTITION TEMPLATE
 ) COMPRESS BASIC PARALLEL 8
 AS SELECT
   network,
+  facility_id,
   patient_id,
+  medical_record_number,
   NVL(order_time, DATE '2010-01-01') AS order_dt,
   LOWER(procedure_name) AS drug_name,
   LOWER(derived_product_name) AS drug_description,
@@ -46,3 +50,5 @@ AS SELECT
   rx_dc_time as rx_dc_dt, 
   rx_exp_date as rx_exp_dt
 FROM prescription_detail_dimension;
+
+GRANT SELECT ON ref_prescriptions TO PUBLIC;

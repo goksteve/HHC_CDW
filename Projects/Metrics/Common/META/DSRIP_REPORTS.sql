@@ -1,5 +1,3 @@
-DROP TABLE dsrip_reports PURGE;
-
 CREATE TABLE dsrip_reports
 (
   report_cd               VARCHAR2(16) CONSTRAINT pk_dsrip_reports PRIMARY KEY,

@@ -9,10 +9,10 @@ define TABLE=&1
 exec xl.begin_action('Copying &TABLE data');
 
 @@&TABLE._copy CBN
-@@&TABLE._copy GP1
-@@&TABLE._copy GP2
-@@&TABLE._copy NBN
-@@&TABLE._copy NBX
-@@&TABLE._copy SMN
+rem @@&TABLE._copy GP1
+rem @@&TABLE._copy GP2
+rem @@&TABLE._copy NBN
+rem @@&TABLE._copy NBX
+rem @@&TABLE._copy SMN
 
 exec xl.end_action;

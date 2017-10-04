@@ -2,6 +2,7 @@ DROP TABLE meta_logic PURGE;
 DROP TABLE meta_criteria_combo PURGE;
 DROP TABLE meta_conditions PURGE;
 DROP TABLE meta_criteria PURGE;
+DROP TABLE dsrip_reports PURGE;
 
 @META_CRITERIA.sql
 @META_CONDITIONS.sql
@@ -10,6 +11,7 @@ DROP TABLE meta_criteria PURGE;
 @META_LOGIC.sql
 
 -- Only in PT005:
+DROP TABLE dsrip_report_results PURGE;
 DROP TABLE meta_logic_h PURGE;
 DROP TABLE meta_conditions_h PURGE;
 DROP TABLE meta_criteria_combo_h PURGE;
