@@ -31,7 +31,7 @@ WITH
   diabetes_diagnoses AS
   (
     SELECT --+ materialize parallel(8)
-      NVL(TO_CHAR(mdm.eid), pd.network||'_'||pd.patient_id) patient_gid,
+      NVL(TO_CHAR(mdm.eid), pd.network||'-'||pd.patient_id) patient_gid,
       MIN(pd.onset_date) onset_dt,
       MAX(pd.stop_date) stop_dt
     FROM patient_diag_dimension pd
@@ -41,7 +41,7 @@ WITH
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
       ON mdm.network = pd.network AND TO_NUMBER(mdm.patientid) = pd.patient_id AND mdm.epic_flag = 'N'
     WHERE pd.diag_coding_scheme IN (5, 10) AND pd.current_flag = '1' AND pd.stop_date IS NULL
-    GROUP BY NVL(TO_CHAR(mdm.eid), pd.network||'_'||pd.patient_id)
+    GROUP BY NVL(TO_CHAR(mdm.eid), pd.network||'-'||pd.patient_id)
   ),
   diabetes_prescriptions AS
   (
@@ -54,7 +54,7 @@ WITH
   a1c_glucose_tests AS
   (
     SELECT --+ materialize
-      NVL(TO_CHAR(mdm.eid), a1c.network||'_'||a1c.patient_id) patient_gid,
+      NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id) patient_gid,
       a1c.network,
       a1c.facility_id,
       a1c.patient_id,
@@ -67,7 +67,7 @@ WITH
       a1c.result_dt,
       a1c.data_element_name,
       a1c.result_value,
-      ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), a1c.network||'_'||a1c.patient_id), a1c.test_type_id ORDER BY a1c.result_dt DESC) rnum
+      ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id), a1c.test_type_id ORDER BY a1c.result_dt DESC) rnum
     FROM report_dates dt
     JOIN dsrip_tr016_a1c_glucose_rslt a1c
       ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt 
