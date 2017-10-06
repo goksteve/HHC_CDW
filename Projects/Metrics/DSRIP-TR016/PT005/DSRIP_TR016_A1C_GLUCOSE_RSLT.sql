@@ -1,11 +1,13 @@
-DROP TABLE tst_ok_tr016_a1c_glucose_lvl PURGE;
+DROP TABLE dsrip_tr016_a1c_glucose_rslt PURGE;
 
-CREATE TABLE tst_ok_tr016_a1c_glucose_lvl
+CREATE TABLE dsrip_tr016_a1c_glucose_rslt
 (
   NETWORK            VARCHAR2(3) NOT NULL,
   FACILITY_ID        NUMBER(12) NOT NULL,
   PATIENT_ID         NUMBER(12) NOT NULL,
   VISIT_ID           NUMBER(12) NOT NULL,
+  VISIT_TYPE_ID      NUMBER(12),
+  VISIT_TYPE         VARCHAR2(50),
   ADMISSION_DT       DATE,
   DISCHARGE_DT       DATE,
   TEST_TYPE_ID       NUMBER(6) NOT NULL,
@@ -16,4 +18,4 @@ CREATE TABLE tst_ok_tr016_a1c_glucose_lvl
   RESULT_VALUE       VARCHAR2(1023) NOT NULL
 ) COMPRESS BASIC ;
 
-GRANT SELECT ON tst_ok_tr016_a1c_glucose_lvl TO PUBLIC;
+GRANT SELECT ON dsrip_tr016_a1c_glucose_rslt TO PUBLIC;

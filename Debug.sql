@@ -1,7 +1,9 @@
 alter session set current_schema = pt008;
 
 UPDATE dbg_process_logs set result = 'Cancelled', end_time = systimestamp
-where end_time is null;
+where end_time is null
+--and proc_id = 54 
+;
 commit;
  
 
@@ -30,20 +32,21 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 43
+where proc_id = 58
 order by tstamp desc;
 
 select *
 from
 (
-  select proc_id, action, seconds 
+  select proc_id, action, cnt, seconds 
   from dbg_performance_data 
-  where proc_id = 40
+  where proc_id = 56
 --  and action like 'Adding%'
-  order by seconds desc
 )
 pivot 
 (
-  max(seconds)
-  for proc_id in (50, 51, 55)
-);
+  max(cnt) cnt,
+  max(seconds) sec
+  for proc_id in (56)
+)
+order by 3 desc;

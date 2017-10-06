@@ -15,6 +15,7 @@ set feedback off
 prompt Preparing DSRIP report TR001
 
 exec xl.open_log('DSRIP-TR001', 'Preparing DSRIP report TR001', TRUE);
+
 exec xl.begin_action('Truncating staging tables');
 truncate table tst_ok_tr001_visits;
 truncate table tst_ok_tr001_diagnoses;
@@ -70,5 +71,11 @@ BEGIN
       GROUP BY GROUPING SETS((report_period_start_dt, network, hospitalization_facility),(report_period_start_dt))',
     i_commit_at => -1
   );
+  
+  xl.close_log('Successfully completed');
+EXCEPTION
+ WHEN OTHERS THEN
+  xl.close_log(SQLERRM, TRUE);
+  RAISE;
 END;
 /
