@@ -67,7 +67,7 @@ WITH
       a1c.result_dt,
       a1c.data_element_name,
       a1c.result_value,
-      ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id), a1c.test_type_id ORDER BY a1c.result_dt DESC) rnum
+      ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id) ORDER BY a1c.result_dt DESC) rnum
     FROM report_dates dt
     JOIN dsrip_tr016_a1c_glucose_rslt a1c
       ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt 
@@ -116,5 +116,4 @@ AND
 (
   (diab.onset_dt IS NULL OR diab.onset_dt > dt.year_back_dt) -- no Diabetes prior last year
   AND (dmed.start_dt IS NULL OR dmed.start_dt > dt.year_back_dt) -- no Diabetes Medications taken prior last year
-  OR tst.patient_gid IS NOT NULL -- had A1c/Glucose test
 );
