@@ -1,0 +1,11 @@
+ud_master.patient
+ud_master.visit
+ud_master.visit_type
+ud_master.visit_segment_visit_location
+ud_master.visit_segment_payer
+ud_master.active_problem
+ud_master.result_field
+ud_master.result
+ud_master.problem_cmv
+hhc_custom.hhc_location_dimension
+hhc_custom.hhc_clinic_codes

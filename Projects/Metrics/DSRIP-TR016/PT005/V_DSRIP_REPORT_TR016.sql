@@ -60,6 +60,7 @@ WITH
       a1c.patient_id,
       a1c.test_type_id,
       a1c.visit_id,
+      a1c.visit_number,
       a1c.visit_type_id,
       a1c.visit_type,
       a1c.admission_dt,
@@ -87,6 +88,7 @@ SELECT
   TRUNC(MONTHS_BETWEEN(NVL(pd.date_of_death, SYSDATE), pd.birthdate)/12) age,
   amed.medication,
   tst.visit_id,
+  tst.visit_number,
   tst.visit_type_id,
   tst.visit_type,
   tst.admission_dt,
@@ -109,7 +111,7 @@ LEFT JOIN patient_dimension pd
   ON pd.network = NVL(tst.network, amed.network) AND pd.patient_id = NVL(tst.patient_id, amed.patient_id) AND pd.current_flag = 1 
 LEFT JOIN facility_dimension f ON f.network = NVL(tst.network, amed.network) AND f.facility_id = amed.facility_id
 LEFT JOIN dsrip_tr016_payers pr ON pr.network = tst.network AND pr.visit_id = tst.visit_id
-LEFT JOIN payer_mapping pm ON pm.network = pr.network AND pm.payer_id = pr.payer_id
+LEFT JOIN pt008.payer_mapping pm ON pm.network = pr.network AND pm.payer_id = pr.payer_id
 WHERE amed.drug_type_id = 34 -- Antipsychotic Medications
 AND amed.rnum = 1
 AND

@@ -1,6 +1,6 @@
-DROP VIEW v_dsrip_tr001_summary;
+DROP VIEW v_dsrip_tr001_epic_summary;
 
-CREATE OR REPLACE VIEW v_dsrip_tr001_summary AS
+CREATE OR REPLACE VIEW v_dsrip_tr001_epic_summary AS
 SELECT
   TO_CHAR(period_start_dt, 'Mon-YYYY') reporting_month,
   network, facility_name, 
@@ -10,8 +10,6 @@ SELECT
   numerator_2 "# 7-day follow-up",  
   round(numerator_2/denominator, 2) "% 7-day follow-up"  
 FROM pt005.dsrip_report_results
-WHERE report_cd = 'DSRIP-TR001'
-AND period_start_dt = (SELECT MAX(period_start_dt) FROM pt005.dsrip_report_results WHERE report_cd = 'DSRIP-TR001')
+WHERE report_cd = 'DSRIP-TR001-EPIC'
+AND period_start_dt = (SELECT MAX(period_start_dt) FROM pt005.dsrip_report_results WHERE report_cd = 'DSRIP-TR001-EPIC')
 ORDER BY CASE WHEN network LIKE 'ALL%' THEN 'ZZZ' ELSE network END, CASE WHEN facility_name LIKE 'ALL%' THEN 'ZZZ' ELSE facility_name END;
-
-SELECT * FROM v_dsrip_tr001_summary;

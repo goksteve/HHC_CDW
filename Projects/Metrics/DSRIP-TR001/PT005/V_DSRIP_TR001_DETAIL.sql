@@ -1,6 +1,6 @@
-CREATE OR REPLACE VIEW v_dsrip_report_tr001 AS
+CREATE OR REPLACE VIEW v_dsrip_tr001_detail AS
 SELECT
-  TO_DATE(SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER')) report_period_start_dt,
+  report_period_start_dt,
   network,
   SUBSTR(patient_name, 1, name_comma-1) last_name,
   SUBSTR(patient_name, name_comma+2) first_name,
@@ -25,6 +25,7 @@ SELECT
 FROM
 (
   SELECT
+    dt.report_period_start_dt,
     q.network,
     q.patient_name,
     INSTR(q.patient_name, ',') name_comma,
@@ -59,6 +60,12 @@ FROM
     CASE WHEN q.follow_up_dt < q.discharge_dt+30 THEN 'Y' END follow_up_30_days,
     CASE WHEN q.follow_up_dt < q.discharge_dt+7 THEN 'Y' END follow_up_7_days
   FROM
+  (
+    SELECT
+      TRUNC(NVL(TO_DATE(SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER')), SYSDATE), 'MONTH') report_period_start_dt
+    FROM dual 
+  ) dt
+  JOIN
   (
     SELECT
       network, facility_id, facility_name, 
@@ -117,8 +124,10 @@ FROM
     )
     WHERE mdm_rnk = 1
   ) q
-  WHERE q.visit_type_cd = 'IP'
---  AND q.discharge_dt >= DATE '2017-07-01' and q.discharge_dt < DATE '2017-08-01'
+  ON q.discharge_dt >= ADD_MONTHS(dt.report_period_start_dt, -2)
+  AND q.discharge_dt < ADD_MONTHS(dt.report_period_start_dt, -1)
+  AND q.visit_type_cd = 'IP'
   AND q.patient_dob <= ADD_MONTHS(q.discharge_dt, -72)
   AND (q.re_admission_dt IS NULL OR q.re_admission_dt >= q.discharge_dt+30)
 );
+ 

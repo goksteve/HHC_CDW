@@ -1,11 +1,6 @@
-ALTER SESSION ENABLE PARALLEL DML;
-ALTER SESSION ENABLE PARALLEL DDL;
+DROP TABLE fact_prescriptions PURGE;
 
-set timi on
-
-DROP TABLE ref_prescriptions PURGE;
-
-CREATE TABLE ref_prescriptions
+CREATE TABLE fact_prescriptions
 (
   network,
   facility_id,
@@ -35,20 +30,4 @@ SUBPARTITION TEMPLATE
 )
 (
   PARTITION old_data VALUES LESS THAN (DATE '2010-01-01') 
-) COMPRESS BASIC PARALLEL 8
-AS SELECT
-  network,
-  facility_id,
-  patient_id,
-  medical_record_number,
-  NVL(order_time, DATE '2010-01-01') AS order_dt,
-  LOWER(procedure_name) AS drug_name,
-  LOWER(derived_product_name) AS drug_description,
-  rx_quantity,
-  dosage,
-  frequency,
-  rx_dc_time as rx_dc_dt, 
-  rx_exp_date as rx_exp_dt
-FROM prescription_detail_dimension;
-
-GRANT SELECT ON ref_prescriptions TO PUBLIC;
+) COMPRESS BASIC PARALLEL 8;

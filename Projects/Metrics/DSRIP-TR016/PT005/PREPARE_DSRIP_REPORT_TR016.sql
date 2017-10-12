@@ -2,7 +2,21 @@ CREATE OR REPLACE PROCEDURE prepare_dsrip_report_tr016(p_report_month IN DATE DE
   d_report_mon  DATE;
   n_cnt         PLS_INTEGER;
 BEGIN
-  xl.open_log('PREPARE_DSRIP_REPORT_TR016', 'Preparing data of the DSRIP report TR016', TRUE);
+  xl.open_log('PREPARE_DSRIP_REPORT_TR016', 'User '||SYS_CONTEXT('USERENV','OS_USER')||': Preparing data of the DSRIP report TR016', TRUE);
+  
+  FOR r IN
+  (
+    SELECT t.COLUMN_VALUE table_name
+    FROM TABLE(tab_v256('DSRIP_TR016_A1C_GLUCOSE_RSLT', 'DSRIP_TR016_PAYERS')) t 
+  )
+  LOOP
+    xl.begin_action('Checking row count in the table', r.table_name);
+    EXECUTE IMMEDIATE 'SELECT COUNT(1) FROM '||r.table_name INTO n_cnt;
+    IF n_cnt = 0 THEN
+      Raise_Application_Error(-20000, 'Table has 0 rows!');
+    END IF;
+    xl.end_action('Table has '||n_cnt||' rows');
+  END LOOP; 
   
   xl.begin_action('Setting the report month');
   d_report_mon := TRUNC(NVL(p_report_month, SYSDATE), 'MONTH');
@@ -21,7 +35,8 @@ BEGIN
   (
     i_operation => 'INSERT',
     i_tgt => 'DSRIP_REPORT_TR016',
-    i_src => 'SELECT * FROM v_dsrip_report_tr016 WHERE rnum = 1',
+    i_src => 'V_DSRIP_REPORT_TR016',
+    i_whr => 'WHERE rnum = 1',
     i_commit_at => -1
   );
   

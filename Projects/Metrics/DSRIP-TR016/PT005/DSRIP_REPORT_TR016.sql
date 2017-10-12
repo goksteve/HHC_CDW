@@ -14,6 +14,7 @@ CREATE TABLE dsrip_report_tr016
   age                           NUMBER,
   medication                    VARCHAR2(512),
   visit_id                      NUMBER(12),
+  visit_number                  VARCHAR2(40),
   visit_type_id                 NUMBER(12),
   visit_type                    VARCHAR2(50),
   admission_dt                  DATE,

@@ -11,6 +11,7 @@ SELECT  --+ ordered full(r) use_hash(e) use_hash(v)
   v.facility_id,
   v.patient_id,
   v.visit_id,
+  v.visit_number,
   v.visit_type_id,
   vt.name visit_type,
   v.admission_date_time admission_dt,
