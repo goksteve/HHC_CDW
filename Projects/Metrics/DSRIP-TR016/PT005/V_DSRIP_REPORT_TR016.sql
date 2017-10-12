@@ -21,7 +21,7 @@ WITH
       NVL(pr.rx_dc_dt, DATE '9999-12-31') AS stop_dt,
       ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), pr.network||'-'||pr.patient_id), NVL(dnm.drug_type_id, dscr.drug_type_id) ORDER BY pr.order_dt DESC) rnum
     FROM report_dates rd
-    JOIN ref_prescriptions pr ON pr.order_dt <= rd.year_back_dt
+    JOIN fact_prescriptions pr ON pr.order_dt <= rd.year_back_dt
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
      ON mdm.network = pr.network AND TO_NUMBER(mdm.patientid) = pr.patient_id AND mdm.epic_flag = 'N'
     LEFT JOIN ref_drug_names dnm ON dnm.drug_name = pr.drug_name 

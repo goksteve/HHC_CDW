@@ -9,7 +9,7 @@ commit;
 
 select
   proc_id, name,
---  comment_txt, 
+  comment_txt, 
   result,
   start_time,
   case when days > 1 then days||' days ' when days > 0 then '1 day ' end ||
@@ -32,7 +32,7 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 62
+where proc_id = 73
 order by tstamp desc;
 
 select *

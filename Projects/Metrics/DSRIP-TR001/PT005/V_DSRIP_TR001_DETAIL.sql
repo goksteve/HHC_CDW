@@ -52,7 +52,7 @@ FROM
       SELECT
         MIN(pm.payer_group||'\'||pm.payer_name) KEEP (DENSE_RANK FIRST ORDER BY CASE WHEN pm.payer_group = 'Medicaid' THEN 1 ELSE 2 END, vp.payer_rank) 
       FROM tst_ok_tr001_payers vp
-      JOIN payer_mapping pm ON pm.payer_id = vp.payer_id
+      JOIN pt008.payer_mapping pm ON pm.payer_id = vp.payer_id
       WHERE vp.visit_id = q.visit_id AND pm.network = q.network
       GROUP BY vp.visit_id
     ) payer_info,
