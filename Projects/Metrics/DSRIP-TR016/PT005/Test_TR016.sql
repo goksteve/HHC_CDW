@@ -20,4 +20,4 @@ select distinct report_cd, period_start_dt from dsrip_report_results;
 
 select * from dsrip_tr016_payers;
 
-select *   from dsrip_report_tr016;
+select * from dsrip_report_tr016;

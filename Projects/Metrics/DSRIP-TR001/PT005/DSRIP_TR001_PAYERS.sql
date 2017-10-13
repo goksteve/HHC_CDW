@@ -1,6 +1,6 @@
-DROP TABLE tst_ok_tr001_payers PURGE;
+DROP TABLE dsrip_tr001_payers PURGE;
 
-CREATE TABLE tst_ok_tr001_payers
+CREATE TABLE dsrip_tr001_payers
 (
   NETWORK     VARCHAR2(3),
   VISIT_ID    NUMBER(12),

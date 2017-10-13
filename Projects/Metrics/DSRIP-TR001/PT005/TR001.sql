@@ -1,31 +1,42 @@
-set feedback off
 /*
--- One-time DDL:
-@TR001_VISITS.sql
-@TR001_DIAGNOSES.sql
-@TR001_PAYERS.sql
-@TR001_PROVIDERS.sql
-@REF_HEDIS_VALUE_SETS.sql
+-- One-time DDL/DML:
+@DSRIP_TR001_VISITS.sql
+@DSRIP_TR001_DIAGNOSES.sql
+@DSRIP_TR001_PAYERS.sql
+@DSRIP_TR001_PROVIDERS.sql
 @DSRIP_REPORT_TR001.sql
 @INSURANCE_TYPE.fnc
-@V_DSRIP_REPORT_TR001.sql
+@V_DSRIP_TR001_DETAIL.sql
+@V_EPIC_BH_FOLLOW_UP_VISITS.sql
+@PREPARE_DSRIP_REPORT_TR001.sql
+@V_DSRIP_TR001_SUMMARY.sql
+@V_DSRIP_TR001_EPIC_SUMMARY.sql
+@add_DSRIP_REPORTS.sql
 */
 
 -- Run every month:
-prompt Preparing DSRIP report TR001
+whenever sqlerror exit 1
+set feedback off
 
-exec xl.open_log('DSRIP-TR001', 'Preparing DSRIP report TR001', TRUE);
+prompt Importing source data for the DSRIP report TR001 from 6 CDW databases ...
+exec xl.open_log('DSRIP-TR001', 'Importing source data for the DSRIP report TR001', TRUE);
 
-exec xl.begin_action('Truncating staging tables');
-truncate table tst_ok_tr001_visits;
-truncate table tst_ok_tr001_diagnoses;
-truncate table tst_ok_tr001_providers;
-truncate table tst_ok_tr001_payers;
-exec xl.end_action;
+call xl.begin_action('Truncating staging tables');
+truncate table dsrip_tr001_diagnoses;
+truncate table dsrip_tr001_providers;
+truncate table dsrip_tr001_payers;
+truncate table dsrip_tr001_visits;
+call xl.end_action();
 
-@copy_table.sql TR001_VISITS
-@copy_table.sql TR001_DIAGNOSES
-@copy_table.sql TR001_PROVIDERS
-@copy_table.sql TR001_PAYERS
+@copy_table.sql VISITS
+@copy_table.sql PROVIDERS
+@copy_table.sql PAYERS
+@copy_table.sql DIAGNOSES
 
-exec prepare_dsrip_report_tr001;
+exec xl.close_log('Successfully completed');
+
+prompt Generating DSRIP report TR001. It may take a while ...
+set timi on
+call prepare_dsrip_report_tr001();
+
+exit 0

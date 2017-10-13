@@ -2,7 +2,7 @@ CREATE OR REPLACE PROCEDURE prepare_dsrip_report_tr001(p_report_month IN DATE DE
   d_report_mon  DATE;
   n_cnt         PLS_INTEGER;
 BEGIN
-  xl.open_log('PREPARE_DSRIP_REPORT_TR001', 'Preparing data of the DSRIP report TR001', TRUE);
+  xl.open_log('PREPARE_DSRIP_REPORT_TR001', SYS_CONTEXT('USERENV','OS_USER')||': Generating DSRIP report TR001', TRUE);
   
   xl.begin_action('Setting the report month');
   d_report_mon := TRUNC(NVL(p_report_month, SYSDATE), 'MONTH');
@@ -44,6 +44,7 @@ BEGIN
         COUNT(follow_up_30_days) numerator_1,
         COUNT(follow_up_7_days) numerator_2
       FROM dsrip_report_tr001 r
+      WHERE r.report_period_start_dt = '''||d_report_mon||'''
       GROUP BY GROUPING SETS((report_period_start_dt, network, hospitalization_facility),(report_period_start_dt))',
     i_commit_at => -1
   );
@@ -69,10 +70,9 @@ BEGIN
       COUNT(1) denominator,
       COUNT(thirtyday_followup) numerator_1,
       COUNT(sevenday_followup) numerator_2
-    FROM v_epic_bh_follow_up_visits
-    WHERE discharge_dt >= ADD_MONTHS('''||d_report_mon||''', -2)
-    AND discharge_dt < ADD_MONTHS('''||d_report_mon||''', -1) 
-    GROUP BY GROUPING SETS(hospitalization_facility, ())',
+    FROM dsrip_epic_bh_follow_up_visits
+    WHERE report_period_start_dt = '''||d_report_mon||''' 
+    GROUP BY GROUPING SETS((report_period_start_dt, hospitalization_facility), (report_period_start_dt))',
     i_commit_at => -1
   );
   

@@ -1,6 +1,6 @@
-DROP TABLE tst_ok_tr001_diagnoses PURGE;
+DROP TABLE dsrip_tr001_diagnoses PURGE;
 
-CREATE TABLE tst_ok_tr001_diagnoses
+CREATE TABLE dsrip_tr001_diagnoses
 (
   network           VARCHAR2(3),
   visit_id          NUMBER(12),

@@ -43,7 +43,7 @@ FROM
     q.follow_up_facility,
     (
       SELECT MIN(pd.provider_name||' - '||pd.physician_service_name) KEEP (DENSE_RANK FIRST ORDER BY CASE WHEN UPPER(pd.physician_service_name) LIKE '%PSYCH%' THEN 1 WHEN pd.physician_service_name IS NOT NULL THEN 2 ELSE 3 END)
-      FROM tst_ok_tr001_providers pr
+      FROM dsrip_tr001_providers pr
       JOIN provider_dimension pd ON pd.provider_id = pr.provider_id
       WHERE pr.visit_id = q.follow_up_visit_id
       GROUP BY pr.visit_id
@@ -51,7 +51,7 @@ FROM
     (
       SELECT
         MIN(pm.payer_group||'\'||pm.payer_name) KEEP (DENSE_RANK FIRST ORDER BY CASE WHEN pm.payer_group = 'Medicaid' THEN 1 ELSE 2 END, vp.payer_rank) 
-      FROM tst_ok_tr001_payers vp
+      FROM dsrip_tr001_payers vp
       JOIN pt008.payer_mapping pm ON pm.payer_id = vp.payer_id
       WHERE vp.visit_id = q.visit_id AND pm.network = q.network
       GROUP BY vp.visit_id
@@ -117,7 +117,7 @@ FROM
             ELSE 3
           END, eid
         ) mdm_rnk
-      FROM tst_ok_tr001_visits v
+      FROM dsrip_tr001_visits v
       JOIN facility_dimension fd ON fd.network = v.network AND fd.facility_id = v.facility_id
       LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
         ON mdm.network = v.network AND TO_NUMBER(mdm.patientid) = v.patient_id AND mdm.epic_flag = 'N'

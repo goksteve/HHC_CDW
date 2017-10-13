@@ -1,6 +1,6 @@
-DROP TABLE tst_ok_tr001_providers PURGE;
+DROP TABLE dsrip_tr001_providers PURGE;
 
-CREATE TABLE tst_ok_tr001_providers
+CREATE TABLE dsrip_tr001_providers
 (
   NETWORK      VARCHAR2(3),
   VISIT_ID     NUMBER(12),

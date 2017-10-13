@@ -6,13 +6,13 @@ set feedback off
 
 define TABLE=&1
 
-exec xl.begin_action('Copying &TABLE data');
+CALL xl.begin_action('Copying &TABLE data');
 
-@@&TABLE._copy CBN
-@@&TABLE._copy GP1
-@@&TABLE._copy GP2
-@@&TABLE._copy NBN
-@@&TABLE._copy NBX
-@@&TABLE._copy SMN
+@@copy_&TABLE CBN
+@@copy_&TABLE GP1
+@@copy_&TABLE GP2
+@@copy_&TABLE NBN
+@@copy_&TABLE NBX
+@@copy_&TABLE SMN
 
-exec xl.end_action;
+CALL xl.end_action();
