@@ -1,6 +1,6 @@
---CREATE OR REPLACE VIEW vw_edd_visits AS
+CREATE OR REPLACE VIEW vw_edd_epic_visits AS
 SELECT
- -- 19-Jul-2017, OK: created
+ -- 20-Oct-2017, OK: created
   facility_key,
   visit_number,
   t0 arrival_dt,
@@ -23,17 +23,8 @@ SELECT
       END
     ELSE -1
   END patient_age_group_id,
-  patient_mrn,/*
-  patient_complaint,
-  chief_complaint,
-  first_nurse_key,
-  second_nurse_key,
-  first_provider_key,
-  second_provider_key,
-  first_attending_key,
-  second_attending_key,
-  diagnosis_key,*/
---  disposition_key,
+  patient_mrn,
+  disposition_name,
   t1 AS register_dt,
   t2 AS triage_dt,
   t3 AS first_provider_assignment_dt,
@@ -49,7 +40,7 @@ SELECT
       OR esi_key = 4 AND (t3-t2) < 1/6  -- 4 hours
       OR esi_key = 5 AND (t3-t2) < 1    -- 1 day
     )
-    THEN 32
+    THEN 32 -- on-time bit
     ELSE 0
   END progress_ind,
   CASE WHEN t2 > t0 THEN (t2-t0)*1440 END arrival_to_triage,
@@ -65,44 +56,32 @@ SELECT
 FROM
 (
   SELECT
-    DECODE
+    DECODE(v.location_id, 1500, 4, 1100, 6, 2400, 11, -1) AS facility_key,
+    v.pat_csn||'_'||v.rn AS visit_number,
+    NVL(REGEXP_REPLACE(v.acuity_name, '[^0-9]', ''), 5) esi_key,
+    v.pat_name AS patient_name,
+    SUBSTR(v.patient_sex, 1, 1) AS patient_gender_cd,
+    CAST(v.birth_date AS DATE) AS patient_dob,
+    v.age_at_arrival,
+    v.mrn AS patient_mrn,
+    NVL(d.common_name, 'Unknown') AS disposition_name,
+    CAST
     (
-      location_id,
-      1500, 4,
-      1100, 6,
-      2400, 11
-    ) AS facility_key,
-    pat_csn || DECODE(rn, 2, '_2') AS visit_number,
-    NVL(REGEXP_REPLACE(acuity_name, '[^0-9]', ''), 5) esi_key,
-    pat_name AS patient_name,
-    SUBSTR(patient_sex, 1, 1) AS patient_gender_cd,
-    birth_date AS patient_dob,
-    age_at_arrival,
-    mrn AS patient_mrn,/*
-    pv.PatientComplaint AS patient_complaint,
-    pv.ChiefComplaint AS chief_complaint,
-    pvc.FirstNurseKey AS first_nurse_key,
-    pvc.CurrentNurseKey AS second_nurse_key,
-    pvc.FirstProviderKey AS first_provider_key,
-    pvc.CurrentProviderKey AS second_provider_key,
-    pvc.FirstAttendingKey AS first_attending_key,
-    pvc.CurrentAttendingKey AS second_attending_key,
-    pvc.DiagnosisKey AS diagnosis_key,*/
---    pvc.DispositionKey disposition_key,
-    LEAST
-    (
-      NVL(arrived_time, DATE '9999-12-31'),
-      NVL(triage_time, DATE '9999-12-31'),
-      NVL(first_provider_assignment_time, DATE '9999-12-31'),
-      NVL(disposition_time, DATE '9999-12-31'),
-      NVL(ed_departure_time, DATE '9999-12-31')
+      LEAST
+      (
+        NVL(v.arrived_time, TIMESTAMP '9999-12-31 23:59:59'),
+        NVL(v.triage_time, TIMESTAMP '9999-12-31 23:59:59'),
+        NVL(v.first_provider_assignment_time, TIMESTAMP '9999-12-31 23:59:59'),
+        NVL(v.disposition_time, TIMESTAMP '9999-12-31 23:59:59'),
+        NVL(v.ed_departure_time, TIMESTAMP '9999-12-31 23:59:59')
+      )
+      AS DATE 
     ) t0,
-    CAST(arrived_time AS DATE) t1,
-    CAST(triage_time AS DATE) t2,
-    CAST(first_provider_assignment_time AS DATE) t3,
-    CAST(disposition_time AS DATE) t4,
-    CAST(ed_departure_time AS DATE) t5
-  FROM edd_stg_epic_visits
+    CAST(v.arrived_time AS DATE) t1,
+    CAST(v.triage_time AS DATE) t2,
+    CAST(v.first_provider_assignment_time AS DATE) t3,
+    CAST(v.disposition_time AS DATE) t4,
+    CAST(v.ed_departure_time AS DATE) t5
+  FROM epic_ed_dashboard.edd_stg_epic_visits v
+  LEFT JOIN edd_epic_dispositions d ON d.id = v.ed_disposition_c
 );
-
-GRANT SELECT ON vw_edd_visits TO PUBLIC;

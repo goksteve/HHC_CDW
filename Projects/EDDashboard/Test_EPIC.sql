@@ -1,3 +1,5 @@
+alter session set current_schema = epic_ed_dashboard;
+
 select
   trunc(arrived_time, 'MONTH') mon,
   count(1) cnt,

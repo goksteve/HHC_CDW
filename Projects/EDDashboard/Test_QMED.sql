@@ -28,9 +28,9 @@ from
         else 0
       end
     ) metric_value
-  from edd_fact_stats v
+  from edd_fact_stats_qmed_only v
   join edd_dim_facilities f on f.FacilityKey = v.Facility_Key
-  join edd_dim_dispositions d on d.DispositionKey = v.Disposition_Key
+  join edd_qmed_dispositions d on d.DispositionKey = v.Disposition_Key
   cross join
   (
     select 1 num, '# of Patients Arrived to ED' metric_name from dual union all
@@ -67,8 +67,7 @@ pivot
     'All' as "All"
   )
 )
-order by num
-;
+order by num;
 
 -- Q2 - Triage to Provider Time / # of Visits:
 select
@@ -79,7 +78,7 @@ from
     v.esi_key, e.esi||' (ESI '||v.esi_key||') - # of Visits' esi,
     decode(grouping(f.FacilityCode), 1, 'All', f.FacilityCode) FacilityCode, 
     sum(v.num_of_visits) num_of_visits
-  from edd_fact_stats v
+  from edd_fact_stats_qmed_only v
   join edd_dim_facilities f on f.FacilityKey = v.Facility_Key
   join edd_dim_esi e on e.esiKey = v.esi_key 
   where v.visit_start_dt >= date '2017-01-01' and v.visit_start_dt < date '2017-02-01'
@@ -117,7 +116,7 @@ from
     sum(nvl(v.num_of_visits, 0)) num_of_visits
   from edd_dim_facilities f 
   cross join edd_dim_esi e
-  left join edd_fact_stats v
+  left join edd_fact_stats_qmed_only v
     on v.esi_key = e.esiKey
    and v.Facility_Key = f.FacilityKey
    and v.visit_start_dt >= date '2017-01-01' and v.visit_start_dt < date '2017-02-01'

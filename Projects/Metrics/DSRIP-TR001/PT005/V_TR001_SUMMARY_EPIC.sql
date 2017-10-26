@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_dsrip_tr001_epic_summary AS
+CREATE OR REPLACE VIEW v_tr001_summary_epic AS
 SELECT
   TO_CHAR(period_start_dt, 'Mon-YYYY') reporting_month,
   facility_name, 

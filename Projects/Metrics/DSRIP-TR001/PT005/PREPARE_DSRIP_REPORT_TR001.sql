@@ -27,7 +27,7 @@ BEGIN
   (
     i_operation => 'INSERT',
     i_tgt => 'DSRIP_REPORT_TR001',
-    i_src => 'V_DSRIP_TR001_DETAIL',
+    i_src => 'V_DSRIP_REPORT_TR001',
     i_commit_at => -1
   );
   

@@ -27,8 +27,8 @@ FROM edd_meta_metric_usage mu
 JOIN edd_dim_dispositions d
   ON mu.disposition_class = 'ANY' OR d.disposition_class = mu.disposition_class
 JOIN edd_fact_visits v
-  ON (mu.esi_key = 0 OR v.esi_key = mu.esi_key) AND v.disposition_key = d.dispositionKey
- AND v.arrival_dt >= TRUNC(TO_DATE(SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER')),'MONTH')  
+  ON (mu.esi_key = 0 OR v.esi_key = mu.esi_key) AND v.disposition_name = d.disposition_name
+ AND v.arrival_dt >= TRUNC(TO_DATE(SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER')),'MONTH')
 GROUP BY GROUPING SETS
 (
   (TRUNC(v.arrival_dt, 'MONTH'), v.facility_key, mu.esi_key, mu.disposition_class, mu.metric_id),

@@ -1,5 +1,6 @@
-CREATE OR REPLACE VIEW vw_edd_visits AS
+CREATE OR REPLACE VIEW vw_edd_qmed_visits AS
 SELECT
+ -- 23-Oct-2017, OK: added "QMED" to the view name and used EDD_QMED_DIMENSIONS
  -- 08-Jun-2017, OK: created
  -- 26-Jun-2017, OK: added column VISIT_KEY
   visit_key,  
@@ -25,7 +26,7 @@ SELECT
   first_attending_key,
   second_attending_key,
   diagnosis_key,
-  disposition_key,
+  disposition_name,
   t1 AS register_dt,
   t2 AS triage_dt,
   t3 AS first_provider_assignment_dt,
@@ -76,7 +77,7 @@ FROM
     pvc.FirstAttendingKey AS first_attending_key,
     pvc.CurrentAttendingKey AS second_attending_key,
     pvc.DiagnosisKey AS diagnosis_key,
-    pvc.DispositionKey disposition_key,
+    NVL(d.common_name, 'Unknown') disposition_name,
     NVL
     (
       t1.date_,
@@ -95,8 +96,9 @@ FROM
     t4.date_ t4,
     t5.date_ t5,
     NVL(pvc.DwellingMinutes, 0) dwell
-  FROM edd_stg_PatientVisitCorporate pvc
-  LEFT JOIN edd_stg_PatientVisit_info pv ON pv.PatientVisitKey = pvc.PatientVisitKey
+  FROM eddashboard.edd_stg_PatientVisitCorporate pvc
+  LEFT JOIN eddashboard.edd_stg_PatientVisit_info pv ON pv.PatientVisitKey = pvc.PatientVisitKey
+  LEFT JOIN edd_qmed_dispositions d ON d.DispositionKey = pvc.DispositionKey
   LEFT JOIN edd_dim_time t1 ON t1.DimTimeKey = pvc.EDVisitOpenDTKey
   LEFT JOIN edd_dim_time t2 on t2.DimTimeKey = pvc.TriageDTKey
   LEFT JOIN edd_dim_time t3 on t3.DimTimeKey = pvc.FirstProviderAssignmentDTKey

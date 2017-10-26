@@ -1,23 +1,9 @@
-select network, count(1) cnt 
-from dsrip_tr016_a1c_glucose_rslt
-group by network
-;
-
 SELECT * from dsrip_report_tr016
 where report_period_start_dt = date '2017-10-01'
---and patient_name like '%Rueda%'
---and medical_record_number = '2083528'
-and payer_group is not null
-order by patient_gid;
+order by patient_name, patient_gid;
 
-select *
+select period_start_dt, network, facility_name, denominator "# Of Patients", numerator_1 "# of screened ones", round(numerator_1/denominator, 2) "% screened" 
 from dsrip_report_results
 where report_cd = 'DSRIP-TR016'
 and period_start_dt = date '2017-10-01'
-order by network, facility_name;
-
-select distinct report_cd, period_start_dt from dsrip_report_results;
-
-select * from dsrip_tr016_payers;
-
-select * from dsrip_report_tr016;
+order by case when network like 'ALL%' then 2 else 1 end, network, facility_name;

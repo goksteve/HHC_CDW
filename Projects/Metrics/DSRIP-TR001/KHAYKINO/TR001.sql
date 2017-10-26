@@ -4,7 +4,7 @@
 @DSRIP_TR001_PROVIDERS.sql
 @DSRIP_TR001_DIAGNOSES.sql
 */
-
+whenever sqlerror exit 1
 -- Every month:
 @Insert_DSRIP_TR001_VISITS.sql
 @Insert_DSRIP_TR001_PAYERS.sql
