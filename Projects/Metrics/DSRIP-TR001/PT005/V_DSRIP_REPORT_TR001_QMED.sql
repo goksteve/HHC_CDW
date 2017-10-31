@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_dsrip_report_tr001 AS
+CREATE OR REPLACE VIEW v_dsrip_report_tr001_qmed AS
 SELECT
   report_period_start_dt,
   network,

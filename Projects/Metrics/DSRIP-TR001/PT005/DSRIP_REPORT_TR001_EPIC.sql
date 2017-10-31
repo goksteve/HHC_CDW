@@ -1,6 +1,6 @@
-DROP TABLE dsrip_epic_bh_follow_up_visits PURGE;
+DROP TABLE dsrip_report_tr001_epic PURGE;
 
-CREATE TABLE dsrip_epic_bh_follow_up_visits
+CREATE TABLE dsrip_report_tr001_epic
 (
   report_period_start_dt    DATE,
   MRN_EMPI                  VARCHAR2(100 CHAR),

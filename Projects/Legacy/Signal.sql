@@ -25,3 +25,14 @@ exception
   raise;
 end;
 /
+
+with
+  driver(rnum) as
+  (
+    select 1 rnum from dual
+    union all
+    select rnum+1 from driver
+    where rnum < 101
+  )
+select rnum-1 num, round(sin((rnum-1)*3.14159265358/50),10) val
+from driver;

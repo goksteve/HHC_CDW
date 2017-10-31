@@ -1,5 +1,6 @@
 alter session set current_schema=pt008;
 
+-- New Data:
 -- Q1 - Volumes:
 select num, metric_name, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, "All"--, elm, qhc
 from
@@ -18,9 +19,12 @@ from
           or m.metric_name = '# of Patients with a Disposition of LWBS' and v.disposition_name = 'Left Without Being Seen'
           or m.metric_name = '# of Patients Left After Triage' and bitand(v.progress_ind, 2) = 2 and (bitand(v.progress_ind, 8) = 0 or d.disposition_name = 'Left Without Being Seen')
           or m.metric_name = '# of Patients Left Without Being Seen' and (bitand(v.progress_ind, 8) = 0 or d.disposition_name = 'Left Without Being Seen')
-          or m.metric_name = '# of Patients with a Disposition not LWBS' and bitand(v.progress_ind, 8) = 8 and d.disposition_name not in ('Left Without Being Seen', 'Unknown')
-          or m.metric_name = '# of Patients Left Against Medical Advice' and v.disposition_name = 'Left Against Medical Advice'
-          or m.metric_name = '# of Patients Walked Out During Evaluation / Eloped' and d.disposition_class = 'ELOPED'
+          or m.metric_name = '# of Patients with a Disposition not LWBS' and bitand(v.progress_ind, 8) = 8
+            and d.disposition_name not in ('Left Without Being Seen', 'Unknown')
+          or m.metric_name = '# of Patients Left Against Medical Advice'
+            and v.disposition_name = 'Left Against Medical Advice'
+          or m.metric_name = '# of Patients Walked Out During Evaluation / Eloped'
+            and d.disposition_name = 'Eloped'
           or m.metric_name = '# of Patients Seen '||CHR(38)||' Discharged' and d.disposition_class = 'DISCHARGED'
           or m.metric_name = '# of Patients Transferred to Another Hospital' and d.disposition_class = 'TRANSFERRED'
           or m.metric_name = '# of ED Patients Who Were Admitted' and d.disposition_class = 'ADMITTED'

@@ -1,8 +1,8 @@
-CREATE OR REPLACE VIEW vw_edd_qmed_visits AS
+CREATE OR REPLACE VIEW vw_edd_tst_qmed_visits AS
 SELECT
- -- 23-Oct-2017, OK: added "QMED" to the view name and used EDD_QMED_DIMENSIONS
- -- 08-Jun-2017, OK: created
- -- 26-Jun-2017, OK: added column VISIT_KEY
+ -- 31-Oct-2017, OK: this is a test version, 
+ -- with intentionally incorrect Arrival Time calcultion logic
+ -- to match the original wrong logic
   visit_key,  
   facility_key,
   visit_number,
@@ -26,7 +26,7 @@ SELECT
   first_attending_key,
   second_attending_key,
   diagnosis_key,
-  disposition_name,
+  dispositionKey disposition_key,
   t1 AS register_dt,
   t2 AS triage_dt,
   t3 AS first_provider_assignment_dt,
@@ -77,8 +77,8 @@ FROM
     pvc.FirstAttendingKey AS first_attending_key,
     pvc.CurrentAttendingKey AS second_attending_key,
     pvc.DiagnosisKey AS diagnosis_key,
-    NVL(d.common_name, 'Unknown') disposition_name,
-    NVL
+    pvc.dispositionKey,
+/*    NVL
     (
       t1.date_,
       LEAST
@@ -88,7 +88,8 @@ FROM
         NVL(t4.date_, DATE '9999-12-31'),
         NVL(t5.date_, DATE '9999-12-31')
       )
-    ) t0,
+    ) t0,*/
+    t1.date_ t0,
     t1.date_ t1,
     t2.date_ t2,
     t3.date_ t3,

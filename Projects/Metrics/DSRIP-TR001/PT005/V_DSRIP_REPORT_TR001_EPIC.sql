@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_epic_bh_follow_up_visits AS
+CREATE OR REPLACE VIEW v_dsrip_report_tr001_epic AS
 SELECT
   dt.report_period_start_dt,
   src.*,

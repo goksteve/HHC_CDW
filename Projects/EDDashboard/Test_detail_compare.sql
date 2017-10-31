@@ -1,16 +1,68 @@
-select 'EPIC' src, f.facilityCode, g.*
-from
+with
+  epic as
+  (
+    select 'EPIC' src,
+    f.facilityKey, 
+    f.facilityCode,
+      g.min_month, g.max_month
+    from
+    (
+      select 
+        DECODE(location_id, 1500, 4, 1100, 6, 2400, 11, -1) AS facility_key,
+        trunc(min(arrived_time), 'MONTH') min_month,
+        trunc(max(arrived_time), 'MONTH') max_month
+      from epic_ed_dashboard.edd_stg_epic_visits v
+      group by location_id
+    ) g
+    join edd_dim_facilities f on f.FacilityKey = g.facility_key
+  ),
+  qmed as
+  (
+    select
+      'QMED' src, 
+      f.FacilityKey, 
+      f.facilityCode,
+      trunc(tmin.date_, 'MONTH') min_month, 
+      trunc(tmax.date_, 'MONTH') max_month
+    from
+    (
+      select 
+        FacilityKey,
+        min(EDVisitOpenDTKey) min_key,
+        max(EDVisitOpenDTKey) max_key
+      from eddashboard.edd_stg_PatientVisitCorporate
+      group by FacilityKey
+    ) g
+    join edd_dim_facilities f on f.FacilityKey = g.facilityKey
+    join edd_dim_time tmin ON tmin.DimTimeKey = g.min_key
+    join edd_dim_time tmax ON tmax.DimTimeKey = g.max_key
+  )
+select * from
 (
-  select 
-    DECODE(location_id, 1500, 4, 1100, 6, 2400, 11, -1) AS facility_key,
-    trunc(min(arrived_time), 'MONTH') min_month, trunc(max(arrived_time), 'MONTH') max_month
-  from epic_ed_dashboard.edd_stg_epic_visits v
-  group by location_id
-) g
-join edd_dim_facilities f on f.FacilityKey = g.facility_key
+  select * from qmed
+  union all 
+  select * from epic
+)
+pivot
+(
+  min(min_month) min_month,
+  max(max_month) max_month
+  for src in ('QMED','EPIC')
+)
 order by FacilityCode;
 
+select
+  f.FacilityKey, f.FacilityCode,
+  trunc(min(v.arrival_dt), 'MONTH') min_month,
+  trunc(max(v.arrival_dt), 'MONTH') max_month
+from edd_fact_visits v
+join edd_dim_facilities f
+  on f.FacilityKey = v.facility_key
+group by f.FacilityKey, f.FacilityCode
+order by 2;
 
+-- # of Patients with a Disposition not LWBS (#8):			
+-- New data:
 select * from
 (
   select
@@ -26,7 +78,8 @@ select * from
           or m.metric_name = '# of Patients with a Disposition of LWBS' and v.disposition_name = 'Left Without Being Seen'
           or m.metric_name = '# of Patients Left After Triage' and bitand(v.progress_ind, 2) = 2 and (bitand(v.progress_ind, 8) = 0 or d.disposition_name = 'Left Without Being Seen')
           or m.metric_name = '# of Patients Left Without Being Seen' and (bitand(v.progress_ind, 8) = 0 or d.disposition_name = 'Left Without Being Seen')
-          or m.metric_name = '# of Patients with a Disposition not LWBS' and bitand(v.progress_ind, 8) = 8 and d.disposition_name not in ('Left Without Being Seen', 'Unknown')
+          or m.metric_name = '# of Patients with a Disposition not LWBS' and bitand(v.progress_ind, 8) = 8
+           and d.disposition_name not in ('Left Without Being Seen', 'Unknown')
           or m.metric_name = '# of Patients Left Against Medical Advice' and v.disposition_name = 'Left Against Medical Advice'
           or m.metric_name = '# of Patients Walked Out During Evaluation / Eloped' and d.disposition_class = 'ELOPED'
           or m.metric_name = '# of Patients Seen '||CHR(38)||' Discharged' and d.disposition_class = 'DISCHARGED'
@@ -56,7 +109,8 @@ select * from
     select 13, '# of ED Patients Who Were Admitted' from dual
   ) m
   where v.visit_start_dt >= '01-JAN-17' and v.visit_start_dt < '01-FEB-17'
-  and d.disposition_name <> 'Correctional Facility' and m.num = 8
+  and f.facilityKey not in (6,11) and d.disposition_name <> 'Correctional Facility'
+  and m.num = 8
   group by grouping sets ((f.FacilityCode, d.disposition_name),(f.FacilityCode))
 )
 pivot
@@ -66,6 +120,7 @@ pivot
 )  
 order by disposition_name;
 
+-- Old data:
 select * from
 (
   select
@@ -82,7 +137,12 @@ select * from
           or m.metric_name = '# of Patients with a Disposition of LWBS' and v.Disposition_Key = 7
           or m.metric_name = '# of Patients Left After Triage' and bitand(v.progress_ind, 2) = 2 and (bitand(v.progress_ind, 8) = 0 or v.disposition_key = 7)
           or m.metric_name = '# of Patients Left Without Being Seen' and (bitand(v.progress_ind, 8) = 0 or v.disposition_key = 7)
-          or m.metric_name = '# of Patients with a Disposition not LWBS' and bitand(v.progress_ind, 8) = 8 and d.dispositionLookup not in ('Left Without Being Seen', 'Unknown')
+          or m.metric_name = '# of Patients with a Disposition not LWBS' and bitand(v.progress_ind, 8) = 8
+           and
+           (
+             d.dispositionLookup not in ('Left Without Being Seen', 'Unknown')
+             or d.dispositionLookup is null -- OK: should be added
+           )
           or m.metric_name = '# of Patients Left Against Medical Advice' and v.disposition_key = 6
           or m.metric_name = '# of Patients Walked Out During Evaluation / Eloped' and v.disposition_key in (10, 15)
           or m.metric_name = '# of Patients Seen '||CHR(38)||' Discharged' and d.DispositionLookup in ('Discharged to Home or Self Care','Transferred to Skilled Nursing Facility','Transferred to Another Hospital','Transferred to Psych ED')
@@ -121,3 +181,20 @@ pivot
   for FacilityCode in ('BHC','CIH','HLM','JMC','KCHC','LHC','MHC','NCB','WHH')	
 )  
 order by common_name, disposition;
+
+select count(1) cnt
+from edd_fact_visits
+where facility_key not in (6, 11)
+and facility_key = 4
+and arrival_dt >= date '2017-01-01' and arrival_dt < date '2017-02-01'
+and disposition_name = 'Admitted';
+
+
+select d.disposition, count(1) cnt
+-- facility_key, visit_number
+from edd_fact_visits_qmed_only v
+join edd_qmed_dispositions d
+  on d.dispositionKey = v.disposition_key
+ and d.common_name = 'Admitted'
+where v.arrival_dt >= date '2017-01-01' and v.arrival_dt < date '2017-02-01' and v.facility_key = 4
+group by d.disposition;

@@ -10,10 +10,10 @@ BEGIN
   xl.end_action('Set to '||d_report_mon);
   
   xl.begin_action('Deleting old TR001 data (if any) for '||d_report_mon);
-  DELETE FROM dsrip_report_tr001 WHERE report_period_start_dt = d_report_mon;
+  DELETE FROM dsrip_report_tr001_qmed WHERE report_period_start_dt = d_report_mon;
   n_cnt := SQL%ROWCOUNT;
   
-  DELETE FROM dsrip_epic_bh_follow_up_visits WHERE report_period_start_dt = d_report_mon;
+  DELETE FROM dsrip_report_tr001_epic WHERE report_period_start_dt = d_report_mon;
   n_cnt := n_cnt + SQL%ROWCOUNT;
   
   DELETE FROM dsrip_report_results
@@ -26,8 +26,8 @@ BEGIN
   etl.add_data
   (
     i_operation => 'INSERT',
-    i_tgt => 'DSRIP_REPORT_TR001',
-    i_src => 'V_DSRIP_REPORT_TR001',
+    i_tgt => 'DSRIP_REPORT_TR001_QMED',
+    i_src => 'V_DSRIP_REPORT_TR001_QMED',
     i_commit_at => -1
   );
   
@@ -43,7 +43,7 @@ BEGIN
         COUNT(1) denominator,
         COUNT(follow_up_30_days) numerator_1,
         COUNT(follow_up_7_days) numerator_2
-      FROM dsrip_report_tr001 r
+      FROM dsrip_report_tr001_qmed r
       WHERE r.report_period_start_dt = '''||d_report_mon||'''
       GROUP BY GROUPING SETS((report_period_start_dt, network, hospitalization_facility),(report_period_start_dt))',
     i_commit_at => -1
@@ -52,8 +52,8 @@ BEGIN
   etl.add_data
   (
     i_operation => 'INSERT',
-    i_tgt => 'DSRIP_EPIC_BH_FOLLOW_UP_VISITS',
-    i_src => 'V_EPIC_BH_FOLLOW_UP_VISITS',
+    i_tgt => 'DSRIP_REPORT_TR001_EPIC',
+    i_src => 'V_DSRIP_REPORT_TR001_EPIC',
     i_whr => 'WHERE rnum = 1',
     i_commit_at => -1
   );
@@ -70,7 +70,7 @@ BEGIN
       COUNT(1) denominator,
       COUNT(thirtyday_followup) numerator_1,
       COUNT(sevenday_followup) numerator_2
-    FROM dsrip_epic_bh_follow_up_visits
+    FROM dsrip_report_tr001_epic
     WHERE report_period_start_dt = '''||d_report_mon||''' 
     GROUP BY GROUPING SETS((report_period_start_dt, hospitalization_facility), (report_period_start_dt))',
     i_commit_at => -1

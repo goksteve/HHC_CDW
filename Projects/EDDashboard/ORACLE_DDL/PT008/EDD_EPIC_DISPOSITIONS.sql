@@ -15,7 +15,7 @@ CREATE TABLE edd_epic_dispositions
 GRANT SELECT ON edd_epic_dispositions TO PUBLIC; 
 
 INSERT INTO edd_epic_dispositions VALUES(1,'Discharge','Discharged','DISCHARGE','Discharge');
-INSERT INTO edd_epic_dispositions VALUES(2,'Transfer to Another Facility','Transferred','TRANSFER TO ANOTHER FACILITY','Transfer');
+INSERT INTO edd_epic_dispositions VALUES(2,'Transfer to Another Facility','Transfer to Another Facility','TRANSFER TO ANOTHER FACILITY','Transfer');
 INSERT INTO edd_epic_dispositions VALUES(3,'Admit','Admitted','ADMIT','Admit');
 INSERT INTO edd_epic_dispositions VALUES(4,'AMA','Left Against Medical Advice','AMA','AMA');
 INSERT INTO edd_epic_dispositions VALUES(5,'Eloped','Eloped','ELOPED','Eloped');

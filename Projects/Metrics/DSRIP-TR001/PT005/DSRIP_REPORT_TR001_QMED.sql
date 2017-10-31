@@ -1,6 +1,6 @@
-DROP TABLE dsrip_report_tr001 PURGE;
+DROP TABLE dsrip_report_tr001_qmed PURGE;
 
-CREATE TABLE dsrip_report_tr001
+CREATE TABLE dsrip_report_tr001_qmed
 (
   report_period_start_dt    DATE,
   network                   VARCHAR2(3),
@@ -25,6 +25,6 @@ CREATE TABLE dsrip_report_tr001
   follow_up_30_days         CHAR(1 CHAR),
   follow_up_7_days          CHAR(1 CHAR),
   CONSTRAINT pk_dsrip_report_tr001 PRIMARY KEY(report_period_start_dt, network, visit_id)
-);
+) COMPRESS BASIC;
 
-GRANT SELECT ON dsrip_report_tr001 TO PT009; 
+GRANT SELECT ON dsrip_report_tr001_qmed TO PT009; 
