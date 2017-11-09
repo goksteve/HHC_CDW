@@ -1,7 +1,7 @@
 CREATE OR REPLACE VIEW vw_edd_metric_values AS
 SELECT
- -- 07-Jun-2017, OK: created
  -- 26-Jun-2017, OK: used CLIENT_IDENTIFIER
+ -- 07-Jun-2017, OK: created
   mu.metric_id, mu.esi_key, mu.disposition_class,
   TRUNC(v.arrival_dt, 'MONTH') month_dt,
   DECODE(GROUPING(v.facility_key), 1, 0, v.facility_key) AS facility_key,

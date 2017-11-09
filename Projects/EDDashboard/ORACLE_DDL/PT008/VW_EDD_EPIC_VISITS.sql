@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW vw_edd_epic_visits AS
 SELECT
+ -- 03-Nov-2017, OK: added LOAD_DT
  -- 20-Oct-2017, OK: created
   facility_key,
   visit_number,
@@ -52,7 +53,9 @@ SELECT
   CASE WHEN t5 > t2 THEN (t5-t2)*1440 END triage_to_exit,
   CASE WHEN t4 > t3 THEN (t4-t3)*1440 END first_provider_to_disposition,
   CASE WHEN t5 > t3 THEN (t5-t3)*1440 END first_provider_to_exit,
-  CASE WHEN t5 > t4 THEN (t5-t4)*1440 END disposition_to_exit
+  CASE WHEN t5 > t4 THEN (t5-t4)*1440 END disposition_to_exit,
+  load_dt,
+  'EPIC' source
 FROM
 (
   SELECT
@@ -81,7 +84,8 @@ FROM
     CAST(v.triage_time AS DATE) t2,
     CAST(v.first_provider_assignment_time AS DATE) t3,
     CAST(v.disposition_time AS DATE) t4,
-    CAST(v.ed_departure_time AS DATE) t5
+    CAST(v.ed_departure_time AS DATE) t5,
+    v.load_dt
   FROM epic_ed_dashboard.edd_stg_epic_visits v
   LEFT JOIN edd_epic_dispositions d ON d.id = v.ed_disposition_c
 );

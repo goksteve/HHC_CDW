@@ -5,7 +5,7 @@ exec dbm.drop_tables('EDD_EPIC_DISPOSITIONS');
 CREATE TABLE edd_epic_dispositions
 (
   id          NUMBER(10) CONSTRAINT pk_edd_epic_dispositions PRIMARY KEY,
-  epic_name   VARCHAR2(64) NOT NULL,
+  epic_name   VARCHAR2(64) CONSTRAINT uk_edd_epic_dispositions UNIQUE NOT NULL,
   common_name VARCHAR2(30) NOT NULL,
   title       VARCHAR2(64) NOT NULL,
   abbr        VARCHAR2(20) NOT NULL,

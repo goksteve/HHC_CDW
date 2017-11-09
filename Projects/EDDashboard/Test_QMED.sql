@@ -14,13 +14,12 @@ create table edd_tst_qmed_metric_values as
 select * from edd_fact_metric_values
 where rownum < 1;
 
-
 begin
   xl.open_log('TST_OK_EDD','Testing EDD logic using QMed data with original (wrong) Arrival_DT calculation', true);
-/*  
+
   etl.add_data
   (
-    i_operation => 'INSERT /*+APPEND PARALLEL(4)*',
+    i_operation => 'INSERT /*+APPEND PARALLEL(4)*/',
     i_src => 'VW_EDD_TST_QMED_VISITS',
     i_tgt => 'EDD_TST_QMED_VISITS',
     i_errtab => 'ERR_EDD_TST_QMED_VISITS',
@@ -35,11 +34,11 @@ begin
     i_errtab => 'ERR_EDD_TST_QMED_STATS',
     i_commit_at => -1
   );
-*/  
+  
   etl.add_data
   (
     i_operation => 'REPLACE',
-    i_src => 'VW_EDD_TST_QMED_METIRC_VALUES',
+    i_src => 'VW_EDD_TST_QMED_METRIC_VALUES',
     i_tgt => 'EDD_TST_QMED_METRIC_VALUES',
     i_commit_at => -1
   );
@@ -169,7 +168,7 @@ from
     m.metric_id, m.description metric_name, v.disposition_class, v.esi_key, 
     f.FacilityCode facility_code,
     to_char(trunc(nvl(v.metric_value,0)/60), '99')||':'||ltrim(to_char(mod(nvl(v.metric_value,0),60),'09')) metric_value
-  from edd_fact_metric_values v
+  from edd_tst_qmed_metric_values v
   join edd_meta_metrics m on m.metric_id = v.metric_id
   left join edd_dim_facilities f on f.FacilityKey = v.facility_key
   where v.month_dt = date '2017-01-01'
@@ -201,7 +200,7 @@ from
     v.esi_key, e.esi||' (ESI '||v.esi_key||') - # of Visits' esi,
     decode(grouping(f.FacilityCode), 1, 'All', f.FacilityCode) FacilityCode, 
     sum(v.num_of_visits) num_of_visits
-  from edd_fact_stats_qmed_only v
+  from edd_tst_qmed_stats v
   join edd_dim_facilities f on f.FacilityKey = v.Facility_Key
   join edd_dim_esi e on e.esiKey = v.esi_key 
   where v.visit_start_dt >= date '2017-01-01' and v.visit_start_dt < date '2017-02-01'
@@ -239,7 +238,7 @@ from
     sum(nvl(v.num_of_visits, 0)) num_of_visits
   from edd_dim_facilities f 
   cross join edd_dim_esi e
-  left join edd_fact_stats_qmed_only v
+  left join edd_tst_qmed_stats v
     on v.esi_key = e.esiKey
    and v.Facility_Key = f.FacilityKey
    and v.visit_start_dt >= date '2017-01-01' and v.visit_start_dt < date '2017-02-01'

@@ -5,7 +5,7 @@ SET DEFINE OFF
 CREATE TABLE edd_qmed_dispositions
 (
   DispositionKey    NUMBER(10,0) CONSTRAINT pk_edd_qmed_dispositions PRIMARY KEY,
-  Disposition       VARCHAR2(1000) NOT NULL,
+  Disposition       VARCHAR2(1000) CONSTRAINT uk_edd_qmed_dispositions UNIQUE NOT NULL,
   DispositionLookup VARCHAR2(1000),
   common_name       VARCHAR2(30) NOT NULL,
   disposition_class VARCHAR2(30) AS

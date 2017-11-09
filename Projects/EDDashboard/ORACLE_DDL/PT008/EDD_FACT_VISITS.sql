@@ -38,6 +38,8 @@ CREATE TABLE edd_fact_visits
   first_provider_to_exit        NUMBER(10),
   disposition_to_exit           NUMBER(10),
   dwell                         NUMBER,
+  source                        CHAR(4) NOT NULL
+   CONSTRAINT chk_edd_visits_sourcce CHECK(SOURCE IN ('EPIC','QMED')),
   CONSTRAINT pk_edd_fact_visits PRIMARY KEY(facility_key, visit_number)
 ) COMPRESS BASIC;
 

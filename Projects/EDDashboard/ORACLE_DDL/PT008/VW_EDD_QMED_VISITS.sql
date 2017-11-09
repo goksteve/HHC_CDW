@@ -55,7 +55,8 @@ SELECT
   CASE WHEN t4 > t3 THEN (t4-t3)*1440 END first_provider_to_disposition,
   CASE WHEN t5 > t3 THEN (t5-t3)*1440 END first_provider_to_exit,
   CASE WHEN t5 > t4 THEN (t5-t4)*1440 END disposition_to_exit,
-  dwell-- 'Minutes of Dwell (OK: unreliable)'
+  dwell, -- 'Minutes of Dwell (OK: unreliable)'
+  'QMED' source
 FROM
 (
   SELECT --+ use_hash(pv)

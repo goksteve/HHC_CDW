@@ -31,7 +31,7 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 95
+where proc_id = 107
 order by tstamp desc;
 
 select *
