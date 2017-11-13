@@ -2,7 +2,7 @@ alter session set current_schema = pt005;
 
 UPDATE dbg_process_logs set result = 'Cancelled', end_time = systimestamp
 where end_time is null
-and proc_id < 90 
+and proc_id < 117
 ;
 commit;
  
@@ -31,7 +31,7 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 107
+where proc_id = 117
 order by tstamp desc;
 
 select *

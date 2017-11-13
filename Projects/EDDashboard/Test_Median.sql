@@ -48,12 +48,26 @@ select
   median(arrival_to_first_provider) arr_to_fp,
   median(arrival_to_disposition) arr_to_disp,
   median(case when first_provider_to_exit>0 then first_provider_to_exit end) fp_to_exit,
-  median(triage_to_exit) tr_to_exit
+  median(triage_to_exit) tr_to_exit,
 from edd_tst_qmed_jmc_timings
+--where disposition_key in (select dispositionKey from edd_qmed_dispositions where disposition_class = 'DISCHARGED');
 where visit_number in
 (
   select visit_number
   from edd_tst_stg_jmc_timings
   where arr_to_fp_disch is not null
-)
-;
+);
+
+select distinct disposition_key
+from edd_tst_qmed_jmc_timings
+--where disposition_key in (select dispositionKey from edd_qmed_dispositions where disposition_class = 'DISCHARGED');
+where visit_number in
+(
+  select visit_number
+  from edd_tst_stg_jmc_timings
+  where arr_to_fp_disch is not null
+);
+
+
+edd_qmed_dispositions d
+-- on d.disposition_class = mu.disposition_class

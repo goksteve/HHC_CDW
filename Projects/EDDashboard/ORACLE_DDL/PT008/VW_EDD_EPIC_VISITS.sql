@@ -25,7 +25,7 @@ SELECT
     ELSE -1
   END patient_age_group_id,
   patient_mrn,
-  disposition_name,
+  disposition_id,
   t1 AS register_dt,
   t2 AS triage_dt,
   t3 AS first_provider_assignment_dt,
@@ -54,8 +54,8 @@ SELECT
   CASE WHEN t4 > t3 THEN (t4-t3)*1440 END first_provider_to_disposition,
   CASE WHEN t5 > t3 THEN (t5-t3)*1440 END first_provider_to_exit,
   CASE WHEN t5 > t4 THEN (t5-t4)*1440 END disposition_to_exit,
-  load_dt,
-  'EPIC' source
+  'EPIC' source,
+  load_dt
 FROM
 (
   SELECT
@@ -67,7 +67,7 @@ FROM
     CAST(v.birth_date AS DATE) AS patient_dob,
     v.age_at_arrival,
     v.mrn AS patient_mrn,
-    NVL(d.common_name, 'Unknown') AS disposition_name,
+    v.ed_disposition_c AS disposition_id,
     CAST
     (
       LEAST
@@ -85,7 +85,9 @@ FROM
     CAST(v.first_provider_assignment_time AS DATE) t3,
     CAST(v.disposition_time AS DATE) t4,
     CAST(v.ed_departure_time AS DATE) t5,
-    v.load_dt
+    v.load_dt,
+    ROW_NUMBER() OVER(PARTITION BY v.location_id, v.pat_csn, v.rn ORDER BY load_dt DESC) rnum
   FROM epic_ed_dashboard.edd_stg_epic_visits v
-  LEFT JOIN edd_epic_dispositions d ON d.id = v.ed_disposition_c
-);
+  WHERE v.load_dt > TO_DATE(SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER'), 'YYYY-MM-DD HH24:MI:SS')
+)
+WHERE rnum = 1;

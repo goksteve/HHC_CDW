@@ -20,7 +20,7 @@ CREATE TABLE edd_fact_visits
   first_attending_key           NUMBER(10),
   second_attending_key          NUMBER(10),
   diagnosis_key                 NUMBER(10),
-  disposition_name              VARCHAR2(30) NOT NULL,
+  disposition_id                NUMBER(10),
   register_dt                   DATE,
   triage_dt                     DATE,
   first_provider_assignment_dt  DATE,
@@ -38,14 +38,14 @@ CREATE TABLE edd_fact_visits
   first_provider_to_exit        NUMBER(10),
   disposition_to_exit           NUMBER(10),
   dwell                         NUMBER,
-  source                        CHAR(4) NOT NULL
+  source                        CHAR(4) NOT NULL,
+  load_dt                       DATE NOT NULL,
    CONSTRAINT chk_edd_visits_sourcce CHECK(SOURCE IN ('EPIC','QMED')),
   CONSTRAINT pk_edd_fact_visits PRIMARY KEY(facility_key, visit_number)
 ) COMPRESS BASIC;
 
 ALTER TABLE edd_fact_visits ADD CONSTRAINT fk_edd_visit_facility FOREIGN KEY(facility_key) REFERENCES edd_dim_facilities;
 ALTER TABLE edd_fact_visits ADD CONSTRAINT fk_edd_visit_esi FOREIGN KEY(esi_key) REFERENCES edd_dim_esi;
-ALTER TABLE edd_fact_visits ADD CONSTRAINT fk_edd_visit_disposition FOREIGN KEY(disposition_name) REFERENCES edd_dim_dispositions;
 
 GRANT SELECT ON edd_fact_visits TO PUBLIC;
 
@@ -53,7 +53,7 @@ CREATE INDEX idx_edd_fact_visits_arrival ON edd_fact_visits(arrival_dt, esi_key)
 
 CREATE BITMAP INDEX bidx_edd_fact_visits_facility ON edd_fact_visits(facility_key);
 CREATE BITMAP INDEX bidx_edd_fact_visits_esi ON edd_fact_visits(esi_key);
-CREATE BITMAP INDEX bidx_edd_fact_visit_dispos ON edd_fact_visits(disposition_name);
+CREATE BITMAP INDEX bidx_edd_fact_visit_dispos ON edd_fact_visits(disposition_id);
 
 EXEC DBMS_ERRLOG.CREATE_ERROR_LOG('EDD_FACT_VISITS','ERR_EDD_FACT_VISITS');
 

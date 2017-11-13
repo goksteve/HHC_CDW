@@ -9,6 +9,7 @@ CREATE TABLE edd_stg_patientvisit_info
   PatientName       VARCHAR2(1000 CHAR),
   sex               VARCHAR2(1000 CHAR),
   dob               VARCHAR2(1000 CHAR),
+  load_dt           DATE DEFAULT SYSDATE NOT NULL,
   CONSTRAINT pk_edd_stg_patientvisit_info PRIMARY KEY (PatientVisitKey)
 ) COMPRESS BASIC;
 

@@ -1,9 +1,9 @@
 CREATE OR REPLACE VIEW vw_edd_qmed_visits AS
 SELECT
+ -- 09-Nov-2017, OK: used ROW_NUMBER()
  -- 23-Oct-2017, OK: added "QMED" to the view name and used EDD_QMED_DIMENSIONS
  -- 08-Jun-2017, OK: created
  -- 26-Jun-2017, OK: added column VISIT_KEY
-  visit_key,  
   facility_key,
   visit_number,
   t0 AS arrival_dt,
@@ -26,7 +26,7 @@ SELECT
   first_attending_key,
   second_attending_key,
   diagnosis_key,
-  disposition_name,
+  disposition_id,
   t1 AS register_dt,
   t2 AS triage_dt,
   t3 AS first_provider_assignment_dt,
@@ -56,11 +56,11 @@ SELECT
   CASE WHEN t5 > t3 THEN (t5-t3)*1440 END first_provider_to_exit,
   CASE WHEN t5 > t4 THEN (t5-t4)*1440 END disposition_to_exit,
   dwell, -- 'Minutes of Dwell (OK: unreliable)'
-  'QMED' source
+  'QMED' source,
+  load_dt
 FROM
 (
   SELECT --+ use_hash(pv)
-    pvc.FactPatientVisitCorporateKey visit_key,
     pv.FacilityKey AS facility_key,
     pvc.VisitNumber AS visit_number,
     pvc.ESIKey AS esi_key,
@@ -78,7 +78,7 @@ FROM
     pvc.FirstAttendingKey AS first_attending_key,
     pvc.CurrentAttendingKey AS second_attending_key,
     pvc.DiagnosisKey AS diagnosis_key,
-    NVL(d.common_name, 'Unknown') disposition_name,
+    pvc.DispositionKey disposition_id,
     NVL
     (
       t1.date_,
@@ -95,15 +95,19 @@ FROM
     t3.date_ t3,
     t4.date_ t4,
     t5.date_ t5,
-    NVL(pvc.DwellingMinutes, 0) dwell
+    NVL(pvc.DwellingMinutes, 0) dwell,
+    ROW_NUMBER() OVER(PARTITION BY pvc.PatientVisitKey ORDER BY pvc.load_dt DESC) rnum,
+    pvc.load_dt
   FROM eddashboard.edd_stg_PatientVisitCorporate pvc
   LEFT JOIN eddashboard.edd_stg_PatientVisit_info pv ON pv.PatientVisitKey = pvc.PatientVisitKey
-  LEFT JOIN edd_qmed_dispositions d ON d.DispositionKey = pvc.DispositionKey
+--  LEFT JOIN edd_qmed_dispositions d ON d.DispositionKey = pvc.DispositionKey
   LEFT JOIN edd_dim_time t1 ON t1.DimTimeKey = pvc.EDVisitOpenDTKey
   LEFT JOIN edd_dim_time t2 on t2.DimTimeKey = pvc.TriageDTKey
   LEFT JOIN edd_dim_time t3 on t3.DimTimeKey = pvc.FirstProviderAssignmentDTKey
   LEFT JOIN edd_dim_time t4 on t4.DimTimeKey = pvc.DispositionDTKey
   LEFT JOIN edd_dim_time t5 on t5.DimTimeKey = pvc.PtExitDTKey
-);
+  WHERE pvc.load_dt > TO_DATE(SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER'), 'YYYY-MM-DD HH24:MI:SS') 
+)
+WHERE rnum = 1;
 
 GRANT SELECT ON vw_edd_visits TO PUBLIC;

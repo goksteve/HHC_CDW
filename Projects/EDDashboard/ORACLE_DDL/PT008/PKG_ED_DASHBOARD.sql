@@ -6,34 +6,29 @@ END;
 CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS 
  
   PROCEDURE process_new_data(p_source IN VARCHAR2 DEFAULT NULL) IS
-    v_msg               VARCHAR2(2048);
-    d_current_mon       DATE;
-    d_epic_max_load_dt  DATE;
-    d_epic_min_dt       DATE;
-    d_qmed_min_dt       DATE;
-    d_min_dt            DATE;
+    v_msg           VARCHAR2(2048);
+    d_prev_load_dt  DATE;
+    c_next_load_dt  CHAR(19);
+    d_epic_min_dt   DATE;
+    d_qmed_min_dt   DATE;
+    d_min_dt        DATE;
   BEGIN
     xl.open_log('PKG_ED_DASHBOARD.PROCESS_NEW_DATA', 'Processing ED data' ||CASE WHEN p_source IS NOT NULL THEN ' received from '||p_source END, TRUE);
     
     EXECUTE IMMEDIATE 'ALTER SESSION ENABLE PARALLEL DML';
     
-    d_current_mon := TRUNC(SYSDATE, 'MONTH');
-    
     IF p_source IS NULL OR p_source = 'QMED' THEN
-      xl.begin_action('Defining the starting date for QMED ED data processing');
+      xl.begin_action('Defining starting point for QMED ED data processing');
       
-      -- Let's recall what was the last month we processed QMED ED data for:
-      SELECT TO_DATE(last_processed_value) INTO d_qmed_min_dt
+      -- Let's recall what is the last QMED data timestamp we've processed:
+      SELECT TO_DATE(last_processed_value, 'YYYY-MM-DD HH24:MI:SS') INTO d_prev_load_dt
       FROM edd_etl WHERE source = 'QMED';
       
-      -- Let's define new starting point:
-      d_qmed_min_dt := CASE
-        WHEN d_qmed_min_dt IS NULL THEN DATE '2001-01-01'
-        ELSE LEAST(ADD_MONTHS(d_current_mon, -1), ADD_MONTHS(d_qmed_min_dt, 1))
-      END;
-        
-      xl.end_action(d_qmed_min_dt);  
-    
+      -- This value is used in the logic of the view VW_EDD_QMED_VISITS:
+      DBMS_SESSION.SET_IDENTIFIER(TO_CHAR(d_prev_load_dt, 'YYYY-MM-DD HH24:MI:SS')); 
+
+      xl.end_action('PREV_LOAD_DT: '||SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER'));
+      
       FOR r IN
       (
         SELECT
@@ -48,13 +43,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
        UNION ALL
         SELECT 'MERGE', 'EDDASHBOARD.EDD_STG_DISPOSITIONS', 'EDD_QMED_DISPOSITIONS', NULL, NULL FROM dual
        UNION ALL
-        SELECT
-          'MERGE /*+ USE_HASH(t)*/',
-          'VW_EDD_QMED_VISITS',
-          'EDD_FACT_VISITS',
-          'WHERE arrival_dt >= '''||d_qmed_min_dt||'''',
-          'ERR_EDD_FACT_VISITS'
-        FROM dual
+        SELECT 'MERGE /*+ USE_HASH(t)*/', 'VW_EDD_QMED_VISITS', 'EDD_FACT_VISITS', NULL, 'ERR_EDD_FACT_VISITS' FROM dual
       )
       LOOP
         etl.add_data
@@ -64,60 +53,79 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
           i_tgt => r.tgt,
           i_whr => r.whr,
           i_errtab => r.errtab,
-          i_commit_at => 0 -- no commit
+          i_commit_at => -1
         );
       END LOOP;
       
+      xl.begin_action('Recording dates of the processed QMED data');
+      
+      SELECT MIN(arrival_dt), TO_CHAR(MAX(load_dt), 'YYYY-MM-DD HH24:MI:SS')
+      INTO d_qmed_min_dt, c_next_load_dt
+      FROM edd_fact_visits
+      WHERE source = 'QMED' AND load_dt > d_prev_load_dt;
+       
       UPDATE edd_etl t
-      SET last_processed_value = ADD_MONTHS(d_current_mon, -1)
+      SET last_processed_value = SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER')
       WHERE source = 'QMED';
+      
+      COMMIT;
+      
+      xl.end_action('Latest LOAD_DT: '||c_next_load_dt||'; Earliest ARRIVAL_DT: ' ||d_qmed_min_dt);      
+      
     END IF;
     
     IF p_source IS NULL OR p_source = 'EPIC' THEN
-      xl.begin_action('Getting MAX load date and MIN arrival date for processing new EPIC ED data');
-       
-      SELECT MAX(v.load_dt), MIN(v.arrival_dt)
-      INTO d_epic_max_load_dt, d_epic_min_dt
-      FROM edd_etl etl
-      JOIN vw_edd_epic_visits v ON v.load_dt > NVL(TO_DATE(etl.last_processed_value, 'YYYY-MM-DD HH24:MI:SS'), DATE '2001-01-01')
-      WHERE etl.source = 'EPIC';
+      xl.begin_action('Defining starting point for EPIC ED data processing');
+
+      -- Let's recall what is the last EPIC ED data timestamp we've processed:
+      SELECT TO_DATE(last_processed_value, 'YYYY-MM-DD HH24:MI:SS') INTO d_prev_load_dt
+      FROM edd_etl WHERE source = 'EPIC';
+
+      -- This value is used in the logic of the view VW_EDD_EPIC_VISITS:
+      DBMS_SESSION.SET_IDENTIFIER(TO_CHAR(d_prev_load_dt, 'YYYY-MM-DD HH24:MI:SS')); 
+
+      xl.end_action('PREV_LOAD_DT: '||SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER'));  
       
-      IF d_epic_min_dt IS NOT NULL THEN
-        xl.end_action('MAX_LOAD_DT: '||TO_CHAR(d_epic_max_load_dt, 'YYYY-MON-DD HH24:MI:SS')||'; MIN_DT: '||d_epic_min_dt);  
+      etl.add_data
+      (
+        i_operation => 'MERGE /*+ USE_HASH(t)*/',
+        i_tgt => 'EDD_FACT_VISITS',
+        i_src => 'VW_EDD_EPIC_VISITS',
+        i_errtab => 'ERR_EDD_FACT_VISITS',
+        i_commit_at => -1
+      );
       
-        etl.add_data
-        (
-          i_operation => 'MERGE /*+ USE_HASH(t)*/',
-          i_tgt => 'EDD_FACT_VISITS',
-          i_src => 'VW_EDD_EPIC_VISITS',
-          i_whr => 'WHERE load_dt > '''||d_epic_max_load_dt||'''',
-          i_errtab => 'ERR_EDD_FACT_VISITS',
-          i_commit_at => 0 -- no commit
-        );
-        
-        UPDATE edd_etl t
-        SET last_processed_value = TO_CHAR(d_epic_max_load_dt, 'YYYY-MM-DD HH24:MI:SS')
-        WHERE source = 'EPIC';
-      ELSE
-        xl.end_action('No new EPIC ED data');  
-      END IF;
+      xl.begin_action('Recording Dates of the processed EPIC dataset');
+      SELECT TO_CHAR(MAX(load_dt), 'YYYY-MM-DD HH24:MI:SS'), MIN(arrival_dt)
+      INTO c_next_load_dt, d_epic_min_dt
+      FROM edd_fact_visits
+      WHERE source = 'EPIC' AND load_dt > d_prev_load_dt; 
+      
+      UPDATE edd_etl t
+      SET last_processed_value = c_next_load_dt
+      WHERE source = 'EPIC';
+      
+      COMMIT;
+      
+      xl.end_action('Latest LOAD_DT: '||c_next_load_dt||'; Earliest ARRIVAL_DT: '||d_epic_min_dt);  
+
     END IF;
     
     xl.begin_action('Setting MIN_DT for statistics calculation');    
-    d_min_dt := LEAST(d_qmed_min_dt, NVL(d_epic_min_dt, d_qmed_min_dt));
+    d_min_dt := LEAST(NVL(d_qmed_min_dt, d_epic_min_dt), NVL(d_epic_min_dt, d_qmed_min_dt));
     
     IF d_min_dt IS NULL THEN
       Raise_Application_Error(-20000, 'D_MIN_DT is NULL!');
     END IF;
 
-    dbms_session.set_identifier(d_min_dt); -- This value will be used by the views VW_EDD_STATS and VW_EDD_METRIC_VALUES
+    DBMS_SESSION.SET_IDENTIFIER(d_min_dt); -- This value will be used by the views VW_EDD_STATS and VW_EDD_METRIC_VALUES
     xl.end_action(d_min_dt);
       
     FOR r IN
     (
-      SELECT 'MERGE' opr, 'VW_EDD_STATS' src, 'EDD_FACT_STATS' tgt, NULL whr, 'ERR_EDD_FACT_STATS' errtab FROM dual
+      SELECT 'MERGE' opr, 'VW_EDD_STATS' src, 'EDD_FACT_STATS' tgt, 'ERR_EDD_FACT_STATS' errtab FROM dual
      UNION ALL
-      SELECT 'MERGE', 'VW_EDD_METRIC_VALUES', 'EDD_FACT_METRIC_VALUES', NULL, NULL FROM dual
+      SELECT 'MERGE', 'VW_EDD_METRIC_VALUES', 'EDD_FACT_METRIC_VALUES', NULL FROM dual
     )
     LOOP
       etl.add_data
@@ -125,13 +133,10 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
         i_operation => r.opr,
         i_src => r.src,
         i_tgt => r.tgt,
-        i_whr => r.whr,
         i_errtab => r.errtab,
-        i_commit_at => 0
+        i_commit_at => -1
       );
     END LOOP;
-    
-    COMMIT;
     
     SELECT
       'Successfully completed'||CHR(10)||
