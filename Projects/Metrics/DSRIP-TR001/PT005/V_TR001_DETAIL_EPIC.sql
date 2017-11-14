@@ -23,5 +23,5 @@ SELECT
   payorpatid,
   pat_id
 FROM dsrip_report_tr001_epic
-WHERE report_period_start_dt = (SELECT MAX(report_period_start_dt) FROM dsrip_report_tr001_epic) 
+WHERE report_period_start_dt = NVL(SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER'),(SELECT MAX(report_period_start_dt) FROM dsrip_report_tr001_epic)) 
 ORDER BY discharge_dt, last_name, first_name;

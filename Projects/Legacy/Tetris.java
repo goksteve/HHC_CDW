@@ -42,12 +42,12 @@ public class Tetris
   
   public Tetris(int width, int height, int initial_rate)
   {
-	  WIDTH = width;
-	  HEIGHT = height;
-	  INITIAL_RATE = initial_rate;
-	  bucket = new int[HEIGHT];
-	  shape = new int[4];
-	  random = new Random();
+    WIDTH = width;
+    HEIGHT = height;
+    INITIAL_RATE = initial_rate;
+    bucket = new int[HEIGHT];
+    shape = new int[4];
+    random = new Random();
   }
 
   private void paintCell(int x, int y, Color clr)
@@ -248,19 +248,19 @@ public class Tetris
     display.dispose ();
   }
   
-	public static void main(String[] args)
-	{
-	  int width=10, height=20, initial_rate=1024;
-	  
-	  for (int i=0; i<args.length; i++)
-	  {
-	    String[] s = args[i].split("=");
-	    if (s[0].toUpperCase().equals("RATE")) initial_rate = Integer.parseInt(s[1]);
-	    else if (s[0].toUpperCase().equals("WIDTH")) width = Integer.parseInt(s[1]);
+  public static void main(String[] args)
+  {
+    int width=10, height=20, initial_rate=1024;
+    
+    for (int i=0; i<args.length; i++)
+    {
+      String[] s = args[i].split("=");
+      if (s[0].toUpperCase().equals("RATE")) initial_rate = Integer.parseInt(s[1]);
+      else if (s[0].toUpperCase().equals("WIDTH")) width = Integer.parseInt(s[1]);
       else if (s[0].toUpperCase().equals("HEIGHT")) height = Integer.parseInt(s[1]);
-	  }
-	  
-	  Tetris app = new Tetris(width, height, initial_rate);
-  	app.run();
-	}
+    }
+    
+    Tetris app = new Tetris(width, height, initial_rate);
+    app.run();
+  }
 }

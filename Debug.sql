@@ -31,8 +31,13 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 117
+where proc_id = 114
 order by tstamp desc;
+
+select proc_id, action, cnt, seconds 
+from dbg_performance_data 
+where proc_id = 117
+order by seconds desc;
 
 select *
 from
@@ -49,3 +54,6 @@ pivot
   for proc_id in (98, 100)
 )
 order by 3 desc;
+
+select * from err_edd_fact_stats
+where ora_err_tag$ = '118'; 

@@ -19,5 +19,5 @@ SELECT
   follow_up_30_days,	 
   follow_up_7_days	 
 FROM dsrip_report_tr001_qmed
-WHERE report_period_start_dt = (SELECT MAX(report_period_start_dt) FROM dsrip_report_tr001_qmed) 
+WHERE report_period_start_dt = NVL(SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER'), (SELECT MAX(report_period_start_dt) FROM dsrip_report_tr001_qmed)) 
 ORDER BY discharge_dt, last_name, first_name;

@@ -65,7 +65,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
       WHERE source = 'QMED' AND load_dt > d_prev_load_dt;
        
       UPDATE edd_etl t
-      SET last_processed_value = SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER')
+      SET last_processed_value = c_next_load_dt
       WHERE source = 'QMED';
       
       COMMIT;

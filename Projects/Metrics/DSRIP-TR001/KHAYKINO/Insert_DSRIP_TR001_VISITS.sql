@@ -1,5 +1,9 @@
 prompt Populating DSRIP_TR001_VISITS ...
 
+ALTER SESSION ENABLE PARALLEL DML;
+
+TRUNCATE TABLE dsrip_tr001_visits;
+
 INSERT --+ parallel(4) 
 INTO dsrip_tr001_visits
 WITH

@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW vw_edd_metric_values AS
 WITH
+ -- 13-Nov-2017, OK: completely new version
   metrics AS
   (
     SELECT --+ MATERIALIZE
@@ -19,8 +20,6 @@ WITH
       ON mu.disposition_class = 'ANY' OR mu.disposition_class = dd.disposition_class
   )
 SELECT
- -- 26-Jun-2017, OK: used CLIENT_IDENTIFIER
- -- 07-Jun-2017, OK: created
  --+ LEADING(v) INDEX(v idx_edd_fact_visits_arrival)
   m.metric_id, m.esi_key, m.disposition_class,
   TRUNC(v.arrival_dt, 'MONTH') month_dt,

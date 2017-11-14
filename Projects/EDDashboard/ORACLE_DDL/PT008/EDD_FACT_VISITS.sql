@@ -40,7 +40,7 @@ CREATE TABLE edd_fact_visits
   dwell                         NUMBER,
   source                        CHAR(4) NOT NULL,
   load_dt                       DATE NOT NULL,
-   CONSTRAINT chk_edd_visits_sourcce CHECK(SOURCE IN ('EPIC','QMED')),
+  CONSTRAINT chk_edd_visits_source CHECK(SOURCE IN ('EPIC','QMED')),
   CONSTRAINT pk_edd_fact_visits PRIMARY KEY(facility_key, visit_number)
 ) COMPRESS BASIC;
 

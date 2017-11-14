@@ -96,7 +96,7 @@ FROM
     t4.date_ t4,
     t5.date_ t5,
     NVL(pvc.DwellingMinutes, 0) dwell,
-    ROW_NUMBER() OVER(PARTITION BY pvc.PatientVisitKey ORDER BY pvc.load_dt DESC) rnum,
+    ROW_NUMBER() OVER(PARTITION BY pvc.PatientVisitKey ORDER BY pvc.load_dt DESC, pv.load_dt DESC) rnum,
     pvc.load_dt
   FROM eddashboard.edd_stg_PatientVisitCorporate pvc
   LEFT JOIN eddashboard.edd_stg_PatientVisit_info pv ON pv.PatientVisitKey = pvc.PatientVisitKey
