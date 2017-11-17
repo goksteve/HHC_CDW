@@ -10,7 +10,7 @@ SELECT
 FROM 
 (
   SELECT DISTINCT network, visit_id
-  FROM tr016_a1c_glucose_lvl
+  FROM dsrip_tr016_a1c_glucose_rslt
 ) v
 JOIN ud_master.visit_segment_payer vsp ON vsp.visit_id = v.visit_id
 GROUP BY v.network, v.visit_id, vsp.payer_id;

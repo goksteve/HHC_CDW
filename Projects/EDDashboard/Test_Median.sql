@@ -43,7 +43,7 @@ from edd_fact_visits
 where arrival_dt >= date '2017-01-01' and arrival_dt < date '2017-02-01'
 and source = 'QMED';
 
--- Median figures directly from the staging table:
+-- Median figures calculated on the interval values in the staging table:
 select 
   f.FacilityCode,
   to_char(trunc(nvl(g.arr_to_triage,0)/60), '99')||':'||ltrim(to_char(mod(nvl(g.arr_to_triage,0),60),'09')) arr_to_triage,
@@ -84,6 +84,7 @@ from
 join edd_dim_facilities f on f.FacilityKey = g.Facility_Key
 order by decode(facilitycode, 'ALL', 2, 1), facilityCode;
 
+-- Discrepancies between detail Interval values in the Staging and Fact tables:
 with det as
 (
   select
@@ -126,3 +127,15 @@ from
   from det
 ) where flag <> 'OK'
 order by facility_key, visit_number, src desc;
+
+
+-- All the FP_TO_EXIT values from the staging table:
+with det as
+(
+  select facility_key, visit_number, fp_to_exit_disch
+  from edd_tst_stg_qmed_jan_visits
+  where facility_key = 8
+  and fp_to_exit_disch is not null
+)
+select * from det order by 1, 2;
+select median(fp_to_exit_disch) from det;

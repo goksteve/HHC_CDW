@@ -23,7 +23,7 @@ WITH
     FROM report_dates rd
     JOIN fact_prescriptions pr ON pr.order_dt <= rd.year_back_dt
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
-     ON mdm.network = pr.network AND TO_NUMBER(mdm.patientid) = pr.patient_id AND mdm.epic_flag = 'N'
+     ON mdm.network = pr.network AND mdm.patientid = TO_CHAR(pr.patient_id) AND mdm.epic_flag = 'N'
     LEFT JOIN ref_drug_names dnm ON dnm.drug_name = pr.drug_name 
     LEFT JOIN ref_drug_descriptions dscr ON dscr.drug_description = pr.drug_description 
     WHERE dnm.drug_type_id IN (33, 34) OR dscr.drug_type_id IN (33, 34) -- Diabetes and Antipsychotic Medications
@@ -86,6 +86,11 @@ SELECT
   pd.medical_record_number,
   pd.birthdate,
   TRUNC(MONTHS_BETWEEN(dt.report_dt, pd.birthdate)/12) age,
+  pd.street_address,
+  pd.apt_suite,
+  pd.city,
+  pd.state,
+  pd.mailing_code zip_code,
   amed.medication,
   tst.visit_id,
   tst.visit_number,
@@ -118,6 +123,6 @@ AND pd.birthdate <= ADD_MONTHS(dt.report_dt, -12*18) -- 18 or older
 AND pd.date_of_death IS NULL
 AND
 (
-  (diab.onset_dt IS NULL OR diab.onset_dt > dt.year_back_dt) -- no Diabetes prior last year
-  AND (dmed.start_dt IS NULL OR dmed.start_dt > dt.year_back_dt) -- no Diabetes Medications taken prior last year
+  (diab.onset_dt IS NULL OR diab.onset_dt > dt.year_back_dt) -- no Diabetes prior to last year
+  AND (dmed.start_dt IS NULL OR dmed.start_dt > dt.year_back_dt) -- no Diabetes Medications taken prior to last year
 );

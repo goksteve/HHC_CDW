@@ -58,6 +58,6 @@ FROM
   LEFT JOIN edd_dim_time t3 on t3.DimTimeKey = pvc.FirstProviderAssignmentDTKey
   LEFT JOIN edd_dim_time t4 on t4.DimTimeKey = pvc.DispositionDTKey
   LEFT JOIN edd_dim_time t5 on t5.DimTimeKey = pvc.PtExitDTKey
-  where pvc.FacilityKey = 1 and pvc.VisitNumber = '1005550-43'
+  where pvc.FacilityKey = 1 and pvc.VisitNumber = '1000141-21'
 )
 WHERE rnum = 1;

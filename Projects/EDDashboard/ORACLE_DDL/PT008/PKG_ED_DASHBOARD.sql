@@ -64,6 +64,10 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
       FROM edd_fact_visits
       WHERE source = 'QMED' AND load_dt > d_prev_load_dt;
        
+      IF c_next_load_dt IS NULL THEN
+        Raise_Application_Error(-20000, 'No new QMED data!');
+      END IF;
+      
       UPDATE edd_etl t
       SET last_processed_value = c_next_load_dt
       WHERE source = 'QMED';
@@ -71,7 +75,6 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
       COMMIT;
       
       xl.end_action('Latest LOAD_DT: '||c_next_load_dt||'; Earliest ARRIVAL_DT: ' ||d_qmed_min_dt);      
-      
     END IF;
     
     IF p_source IS NULL OR p_source = 'EPIC' THEN
@@ -101,6 +104,10 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
       FROM edd_fact_visits
       WHERE source = 'EPIC' AND load_dt > d_prev_load_dt; 
       
+      IF c_next_load_dt IS NULL THEN
+        Raise_Application_Error(-20000, 'No new EPIC data!');
+      END IF;
+      
       UPDATE edd_etl t
       SET last_processed_value = c_next_load_dt
       WHERE source = 'EPIC';
@@ -108,7 +115,6 @@ CREATE OR REPLACE PACKAGE BODY pkg_ed_dashboard AS
       COMMIT;
       
       xl.end_action('Latest LOAD_DT: '||c_next_load_dt||'; Earliest ARRIVAL_DT: '||d_epic_min_dt);  
-
     END IF;
     
     xl.begin_action('Setting MIN_DT for statistics calculation');    

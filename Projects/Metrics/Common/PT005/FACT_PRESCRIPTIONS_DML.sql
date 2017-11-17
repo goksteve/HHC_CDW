@@ -6,6 +6,8 @@ set timi on
 
 TRUNCATE TABLE fact_prescriptions;
 
+ALTER TABLE fact_prescriptions TRUNCATE PARTITION FOR (DATE '2017-11-17');
+
 INSERT --+ APPEND PARALLEL(16)
 INTO fact_prescriptions
 SELECT
@@ -21,7 +23,8 @@ SELECT
   frequency,
   rx_dc_time as rx_dc_dt, 
   rx_exp_date as rx_exp_dt
-FROM pt008.prescription_detail;
+FROM pt008.prescription_detail
+WHERE order_time >= TRUNC(SYSDATE,'YEAR');
 
 COMMIT;
 
