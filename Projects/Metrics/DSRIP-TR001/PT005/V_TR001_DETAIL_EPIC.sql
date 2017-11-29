@@ -3,9 +3,17 @@ SELECT
   SUBSTR(patient_name, 1, INSTR(patient_name, ',')-1) last_name,
   SUBSTR(patient_name, INSTR(patient_name, ',')+1) first_name,
   patient_dob,
+  add_line_1,
+  add_line_2,
+  city,
+  zip,
+  state,
+  pat_home_phone,
+  pat_work_phone
   prim_care_provider,	 
   hospitalization_facility,	 
   mrn,
+  mrn_empi empi,
   admission_dt,	 
   discharge_dt, 
   follow_up_visit_id,	 
@@ -18,8 +26,8 @@ SELECT
   payor1,
   payor2,
   payor3,
-  NVL2(thirtyday_followup, 'Y', NULL) follow_up_30_days,	 
-  NVL2(sevenday_followup, 'Y', NULL) follow_up_7_days,
+  CASE WHEN thirtyday_followup <> '0' THEN 'Y' END follow_up_30_days,	 
+  CASE WHEN sevenday_followup <> '0' THEN 'Y' END follow_up_7_days,
   payorpatid,
   pat_id
 FROM dsrip_report_tr001_epic

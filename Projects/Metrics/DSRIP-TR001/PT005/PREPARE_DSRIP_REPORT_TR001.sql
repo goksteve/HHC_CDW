@@ -68,8 +68,8 @@ BEGIN
       ''EPIC'' network,
       DECODE(GROUPING(hospitalization_facility), 1, ''ALL facilities'', hospitalization_facility) AS facility_name,
       COUNT(1) denominator,
-      COUNT(thirtyday_followup) numerator_1,
-      COUNT(sevenday_followup) numerator_2
+      COUNT(CASE WHEN thirtyday_followup <> ''0'' THEN 1 END) numerator_1,
+      COUNT(CASE WHEN sevenday_followup <> ''0'' THEN 1 END) numerator_2
     FROM dsrip_report_tr001_epic
     WHERE report_period_start_dt = '''||d_report_mon||''' 
     GROUP BY GROUPING SETS((report_period_start_dt, hospitalization_facility), (report_period_start_dt))',
