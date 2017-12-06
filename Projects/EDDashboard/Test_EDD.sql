@@ -53,7 +53,6 @@ from
   ) m
   where v.visit_start_dt >= '01-JAN-17' and v.visit_start_dt < '01-FEB-17'
 --  and f.facilityKey not in (6, 11) 
-  and d.disposition_name <> 'Correctional Facility'
   group by grouping sets((m.num, m.metric_name, f.facilityCode), (m.num, m.metric_name)) 
 )
 pivot
@@ -77,7 +76,45 @@ pivot
 )
 order by num;
 
--- Q2 - Triage to Provider Time / # of Visits:
+-- Q2:
+-- 1) Throughput Metrics - in Median Times (hh:mm)
+-- 2) Triage to Provider Time / Median Wait Time - Triage to First Provider
+select metric_id, metric_name, disposition_class, esi_key, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, elm, qhc, "All"
+from
+(
+  select
+    m.metric_id, m.description metric_name, v.disposition_class, v.esi_key, 
+    f.FacilityCode facility_code,
+    to_char(trunc(nvl(v.metric_value,0)/60), '99')||':'||ltrim(to_char(mod(nvl(v.metric_value,0),60),'09')) metric_value
+  from edd_fact_metric_values v
+  join edd_meta_metrics m on m.metric_id = v.metric_id
+  left join edd_dim_facilities f on f.FacilityKey = v.facility_key
+  where v.month_dt = date '2017-01-01'
+)
+pivot
+(
+  max(metric_value)
+  for Facility_Code in 
+  (
+    'BHC' as bhc,
+    'CIH' as cih,
+    'ELM' as elm,
+    'HLM' as hlm,
+    'JMC' as jmc,
+    'KCHC' as kch,
+    'LHC' as lhc,
+    'MHC' as mhc,
+    'NCB' as ncb,
+    'QHC' as qhc,
+    'WHH' as whh,
+    'ALL' as "All"
+  )
+) order by esi_key, metric_id;
+
+select * from edd_etl;
+
+
+-- Q3 - Triage to Provider Time / # of Visits:
 select
   esi, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, "All"
 from
@@ -115,9 +152,9 @@ pivot
 )
 order by esi_key;
 
--- Q3 - Triage to Provider Time / # of Visits in Prescribed Time:
+-- Q4 - Triage to Provider Time / # of Visits in Prescribed Time:
 select
-  esi, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, "All"
+  esi, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, elm, qhc, "All"
 from
 (
   select
@@ -126,7 +163,7 @@ from
     sum(nvl(v.num_of_visits, 0)) num_of_visits
   from edd_dim_facilities f 
   cross join edd_dim_esi e
-  left join edd_fact_stats_qmed_only v
+  left join edd_fact_stats v
     on v.esi_key = e.esiKey
    and v.Facility_Key = f.FacilityKey
    and v.visit_start_dt >= date '2017-01-01' and v.visit_start_dt < date '2017-02-01'
@@ -141,52 +178,19 @@ pivot
   (
     'BHC' as bhc,
     'CIH' as cih,
+    'ELM' as elm,
     'HLM' as hlm,
     'JMC' as jmc,
     'KCHC' as kch,
     'LHC' as lhc,
     'MHC' as mhc,
     'NCB' as ncb,
+    'QHC' as qhc,
     'WHH' as whh,
     'All' as "All"
   )
 )
 order by esikey;
-
--- Q4:
--- 1) Throughput Metrics - in Median Times (hh:mm)
--- 2) Triage to Provider Time / Median Wait Time - Triage to First Provider
-select metric_id, metric_name, disposition_class, esi_key, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, "All"
-from
-(
-  select
-    m.metric_id, m.description metric_name, v.disposition_class, v.esi_key, 
-    f.FacilityCode facility_code,
-    to_char(trunc(nvl(v.metric_value,0)/60), '99')||':'||ltrim(to_char(mod(nvl(v.metric_value,0),60),'09')) metric_value
-  from edd_fact_metric_values v
-  join edd_meta_metrics m on m.metric_id = v.metric_id
-  left join edd_dim_facilities f on f.FacilityKey = v.facility_key
-  where v.month_dt = date '2017-01-01'
-)
-pivot
-(
-  max(metric_value)
-  for Facility_Code in 
-  (
-    'BHC' as bhc,
-    'CIH' as cih,
-    'HLM' as hlm,
-    'JMC' as jmc,
-    'KCHC' as kch,
-    'LHC' as lhc,
-    'MHC' as mhc,
-    'NCB' as ncb,
-    'WHH' as whh,
-    'ALL' as "All"
-  )
-) order by esi_key, metric_id;
-
-select * from edd_etl;
 
 exec DBMS_SESSION.SET_IDENTIFIER('25-JUN-17');
 select * from vw_edd_metric_values;
