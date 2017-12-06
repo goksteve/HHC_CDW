@@ -1,11 +1,13 @@
---  Check that PARENT_LOCATION_ID can be reliably used instead of parcing the LOCATION_ID: 
+-- Check that PARENT_LOCATION_ID can be reliably used instead of parcing the LOCATION_ID: 
+-- Only on 2 rows PARENT_LOCATION_ID and the leading part of the LOCATION_ID do not match: 
 select l.*, regexp_substr(location_id, '^([0-9~]*)~[0-9]*$', 1, 1, 'c', 1) sub_str
 from ud_master.location l
-where parent_location_id <> nvl(regexp_substr(location_id, '^([0-9~A]*)~[0-9A]*$', 1, 1, 'c', 1), 'N/A');
-
-drop table ok_location_dimension purge; 
+--where parent_location_id <> nvl(regexp_substr(location_id, '^([0-9~A]*)~[0-9A]*$', 1, 1, 'c', 1), 'N/A')
+;
 
 -- Create another version of the LOCATION_DIMENSION table using one query:
+drop table ok_location_dimension purge; 
+
 create table ok_location_dimension as
 with
   det as
@@ -32,26 +34,19 @@ select
   location_id, area, subarea, sub_subarea, bed_flag,
   NVL(f.name, 'Unknown') AS facility,
   case
-     when area like '%Interface%' or area like '%I/F%' then nvl(regexp_substr(subarea, '([0-9]+) *$', 1, 1, 'c', 1), 'N/A')
+     when (area like '%Interface%' or area like '%I/F%')
+          and lower(subarea) not like 'shell%'
+     then nvl(regexp_substr(subarea, '([0-9]+) *$', 1, 1, 'c', 1), 'N/A')
      else 'N/A'
   end clinic_code
 from pvt
 left join ud_master.facility f on f.facility_id = pvt.facility_id;
 
 -- Check the counts:
-select count(1) cnt from hhc_custom.hhc_location_dimension; -- 21,727
-select count(1) cnt from ok_location_dimension; -- 21,729
+select count(1) cnt from hhc_custom.hhc_location_dimension;
+select count(1) cnt from ok_location_dimension;
 
--- Compare datasets using FULL JOIN:  
-select ok.*, hhc.*
-from ok_location_dimension ok
-full join hhc_custom.hhc_location_dimension hhc on hhc.location_id = ok.location_id
-where hhc.location_id is null or ok.location_id is null
- or hhc.area <> ok.area or hhc.subarea <> ok.subarea or hhc.sub_subarea <> ok.sub_subarea
- or hhc.bed_flag <> ok.bed_flag or hhc.facility <> ok.facility or hhc.clinic_code <> ok.clinic_code
-;
-
--- Compare datesets using ordered UNION:
+-- Compare the datesets:
 select *
 from
 (
@@ -75,17 +70,22 @@ from
 where difference is not null
 order by location_id, src;
 
+-- Going up the hierarchy:
 select level, location_id, name, parent_location_id, bed, facility_id 
 from ud_master.location
 connect by location_id = prior parent_location_id and location_id <> prior location_id
-start with location_id = '538~10~';
+start with location_id = '307~127~';
 
-select code, description, service 
-from hhc_custom.hhc_clinic_codes
-order by 2;
+-- Not all Clinic Codes are used:
+select cc.code, cc.description, cc.service, count(ld.clinic_code) cnt 
+from hhc_custom.hhc_clinic_codes cc
+left join hhc_custom.hhc_location_dimension ld on ld.clinic_code = cc.code 
+group by cc.code, cc.description, cc.service
+having count(ld.clinic_code) < 1
+order by 1;
 
 select distinct service
 from hhc_custom.hhc_clinic_codes;
---
+
 select * from ok_location_dimension
 where location_id in ('538','538~10','538~10~');

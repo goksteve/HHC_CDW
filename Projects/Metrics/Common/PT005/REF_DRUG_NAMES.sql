@@ -19,3 +19,5 @@ PARTITION BY LIST(drug_type_id)
 );
 
 GRANT SELECT ON ref_drug_names TO PUBLIC;
+
+ALTER TABLE ref_drug_names ADD PARTITION type_35 VALUES(35);

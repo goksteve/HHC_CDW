@@ -2,7 +2,7 @@ alter session set current_schema=pt008;
 
 -- New Data:
 -- Q1 - Volumes:
-select num, metric_name, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, "All"--, elm, qhc
+select num, metric_name, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, elm, qhc, "All"
 from
 (
   select
@@ -52,7 +52,7 @@ from
     select 13, '# of ED Patients Who Were Admitted' from dual
   ) m
   where v.visit_start_dt >= '01-JAN-17' and v.visit_start_dt < '01-FEB-17'
-  and f.facilityKey not in (6, 11) 
+--  and f.facilityKey not in (6, 11) 
   and d.disposition_name <> 'Correctional Facility'
   group by grouping sets((m.num, m.metric_name, f.facilityCode), (m.num, m.metric_name)) 
 )

@@ -1,0 +1,65 @@
+select cr.criterion_id, cr.criterion_cd, count(1) cnt
+from meta_criteria cr
+join meta_conditions c on c.criterion_id = cr.criterion_id
+group by cr.criterion_id, cr.criterion_cd
+order by 2;
+
+11	DIAGNOSES:ACUTE BRONCHITIS	10
+21	DIAGNOSES:ASTHMA	75
+17	DIAGNOSES:BILATERAL MASTECTOMY CODES	5
+32	DIAGNOSES:BIPOLAR	34
+19	DIAGNOSES:BRONCHITIS COMORBID CONDITIONS	2103
+20	DIAGNOSES:BRONCHITIS COMPETING DIAGNOSES AND PHARYNGIT	846
+ 1	DIAGNOSES:DIAB MONITORING	326
+ 6	DIAGNOSES:DIABETES	146
+ 3	DIAGNOSES:HYPERTENSION	61
+ 9	DIAGNOSES:MENTAL HEALTH	364
+31	DIAGNOSES:SCHIZOPHRENIA	74
+18	DIAGNOSES:UNILATERAL MASTECTOMY CODES	16
+30	DIAGNOSIS:CARDIO VASCULAR	499
+ 5	MEDICATIONS:ANTIBIOTIC	145
+34	MEDICATIONS:ANTIPSYCHOTIC	55
+24	MEDICATIONS:ASTHMA(INHALATION)	35
+22	MEDICATIONS:ASTHMA(ORAL)	31
+28	MEDICATIONS:ASTHMA(SUBCUTANEOUS)	2
+33	MEDICATIONS:DIABETES	94
+ 2	PROCEDURES:MAMMOGRAM	175
+16	PROCEDURES:MAMMOGRAM DIAGNOSTIC	59
+14	PROCEDURES:MAMMOGRAM SCREENING	111
+13	RESULTS:BLOOD PRESSURE	722
+ 4	RESULTS:DIABETES A1C	116
+15	RESULTS:DIASTOLIC BLOOD PRESSURE	36
+23	RESULTS:GLUCOSE_LVL	97
+ 8	RESULTS:HYPERTENSION	4113
+10	RESULTS:LDL	646
+25	RESULTS:PROVIDER_ID_FIRST	42
+26	RESULTS:PROVIDER_ID_LAST	181
+29	RESULTS:SYSTOLIC BLOOD PRESSURE	37
+35	SUPPLY:DIABETIC	28
+
+SELECT c.* 
+FROM meta_criteria crt
+join meta_conditions c on c.criterion_id = crt.criterion_id
+where crt.criterion_cd like 'MED%'
+and condition_type_cd <> 'MED'
+;
+
+select * 
+from meta_conditions_h
+where criterion_id = 33 and value IN 
+(
+  '%afrezza%',
+  '%invokamet%',
+  '%lispro%',
+  '%saxenda%',
+  '%symlin%'
+);
+
+select * from meta_changes;
+
+INSERT INTO meta_changes(comments) values('Correction of a typo');
+
+update meta_conditions
+set condition_type_cd = 'MED', comparison_operator = 'LIKE'
+where criterion_id = 33
+and condition_type_cd <> 'MED';

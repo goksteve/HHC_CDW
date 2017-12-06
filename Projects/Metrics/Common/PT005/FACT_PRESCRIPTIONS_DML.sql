@@ -47,7 +47,7 @@ WITH
       cr.criterion_id drug_type_id
     FROM meta_criteria cr 
     JOIN meta_conditions cnd ON cnd.criterion_id = cr.criterion_id
-    WHERE cr.criterion_cd LIKE 'MEDICATIONS%'
+    WHERE cr.criterion_cd LIKE 'MEDICATIONS%' OR cr.criterion_cd LIKE 'SUPPLY%'
   )
 SELECT --+ ordered
   DISTINCT n.drug_name, c.drug_type_id 
@@ -75,7 +75,7 @@ WITH
       cr.criterion_id drug_type_id
     FROM meta_criteria cr 
     JOIN meta_conditions cnd ON cnd.criterion_id = cr.criterion_id
-    WHERE cr.criterion_cd LIKE 'MEDICATIONS%'
+    WHERE cr.criterion_cd LIKE 'MEDICATIONS%' OR cr.criterion_cd LIKE 'SUPPLY%'
   )
 SELECT --+ ordered
   DISTINCT d.drug_description, c.drug_type_id 

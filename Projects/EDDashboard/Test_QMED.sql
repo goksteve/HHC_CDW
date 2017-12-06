@@ -29,7 +29,7 @@ GROUP BY
  TRUNC(v.arrival_dt), facility_key, esi_key, patient_age_group_id, patient_gender_cd,
  v.disposition_id, progress_ind;
 
-exec dbms_session.set_identifier('OLD');
+exec dbms_session.set_identifier('OK');
 
 -- Q1 - Volumes:
 select metric_name, bhc, cih, hlm, jmc, kch, lhc, mhc, ncb, whh, "All"
@@ -159,7 +159,6 @@ pivot
   )
 )
 order by num;
-
 
 -- Q2:
 -- 1) Throughput Metrics - in Median Times (hh:mm)
