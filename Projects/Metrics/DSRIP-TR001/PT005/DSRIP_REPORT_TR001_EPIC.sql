@@ -31,8 +31,6 @@ CREATE TABLE dsrip_report_tr001_epic
   payor3                    VARCHAR2(254 CHAR),
   SevenDay_FollowUp         VARCHAR2(255 CHAR),
   ThirtyDay_FollowUp        VARCHAR2(255 CHAR),
-  PayorPatID                VARCHAR2(18 CHAR),
-  pat_id                    VARCHAR2(18 CHAR),
   source                    VARCHAR2(4 CHAR),
   epic_flag                 CHAR(1 CHAR),
   etl_load_date             TIMESTAMP(6),

@@ -4,9 +4,7 @@ ALTER SESSION SET CURRENT_SCHEMA=pt005;
 
 set timi on
 
-TRUNCATE TABLE fact_prescriptions;
-
-ALTER TABLE fact_prescriptions TRUNCATE PARTITION FOR (DATE '2017-11-17');
+ALTER TABLE fact_prescriptions TRUNCATE PARTITION FOR (TRUNC(SYSDATE,'YEAR'));
 
 INSERT --+ APPEND PARALLEL(16)
 INTO fact_prescriptions
@@ -28,6 +26,8 @@ WHERE order_time >= TRUNC(SYSDATE,'YEAR');
 
 COMMIT;
 
+prompt Re-loading the table REF_DRUG_NAMES ...
+
 TRUNCATE TABLE ref_drug_names;
 
 INSERT --+ APPEND PARALLEL(16)
@@ -38,23 +38,16 @@ WITH
     SELECT --+ materialize
       DISTINCT drug_name 
     FROM fact_prescriptions
-  ), 
-  cnd AS
-  (
-    SELECT --+ materialize
-      DISTINCT
-      cnd.value,
-      cr.criterion_id drug_type_id
-    FROM meta_criteria cr 
-    JOIN meta_conditions cnd ON cnd.criterion_id = cr.criterion_id
-    WHERE cr.criterion_cd LIKE 'MEDICATIONS%' OR cr.criterion_cd LIKE 'SUPPLY%'
   )
 SELECT --+ ordered
-  DISTINCT n.drug_name, c.drug_type_id 
+  DISTINCT n.drug_name, c.criterion_id 
 FROM nm n
-JOIN cnd c ON n.drug_name LIKE c.value; 
+JOIN meta_conditions c
+  ON c.condition_type_cd = 'MED' AND c.include_exclude_ind = 'I' AND c.comparison_operator = 'LIKE' AND n.drug_name LIKE c.value; 
 
 COMMIT;
+
+prompt Re-loading the table REF_DRUG_DESCRIPTIONS ...
 
 TRUNCATE TABLE ref_drug_descriptions;
 
@@ -66,20 +59,22 @@ WITH
     SELECT --+ materialize
       DISTINCT drug_description 
     FROM fact_prescriptions
-  ),
-  cnd AS
-  (
-    SELECT --+ materialize
-      DISTINCT
-      cnd.value,
-      cr.criterion_id drug_type_id
-    FROM meta_criteria cr 
-    JOIN meta_conditions cnd ON cnd.criterion_id = cr.criterion_id
-    WHERE cr.criterion_cd LIKE 'MEDICATIONS%' OR cr.criterion_cd LIKE 'SUPPLY%'
+    WHERE drug_description NOT LIKE 'catalyst 5 wheechair dimension%'
   )
-SELECT --+ ordered
-  DISTINCT d.drug_description, c.drug_type_id 
-FROM dscr d
-JOIN cnd c ON d.drug_description LIKE c.value; 
+  SELECT
+    d.drug_description, c.criterion_id
+  FROM dscr d
+  JOIN meta_conditions c
+    ON c.condition_type_cd = 'MED' AND include_exclude_ind = 'I' AND c.comparison_operator = 'LIKE' AND d.drug_description LIKE c.value
+UNION
+  SELECT
+    d.drug_description, c.criterion_id 
+  FROM dscr d
+  JOIN meta_conditions c
+    ON c.condition_type_cd = 'MED' AND c.comparison_operator = '=' AND c.value = d.drug_description AND c.include_exclude_ind = 'I'
+MINUS -- Exclude from the Drug Type 33 all the Medications listed in the Metadata List #35 
+  SELECT value, 33
+  FROM meta_conditions
+  WHERE criterion_id = 35;
 
 COMMIT;

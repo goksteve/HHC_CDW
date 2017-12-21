@@ -17,6 +17,8 @@ CREATE TABLE dsrip_report_tr016
   city                          VARCHAR2(50),
   state                         VARCHAR2(50),
   zip_code                      VARCHAR2(50),
+  prim_care_provider            VARCHAR2(60),
+  last_pcp_visit_dt             DATE,
   medication                    VARCHAR2(512),
   visit_id                      NUMBER(12),
   visit_number                  VARCHAR2(40),

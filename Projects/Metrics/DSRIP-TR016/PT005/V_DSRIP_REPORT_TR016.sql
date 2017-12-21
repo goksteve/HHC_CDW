@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW v_dsrip_report_tr016 AS
 WITH
+  -- 12-Dec-2017, OK: excluded QHN and SBN networks
   report_dates AS
   (
     SELECT --+ materialize
@@ -21,9 +22,10 @@ WITH
       NVL(pr.rx_dc_dt, DATE '9999-12-31') AS stop_dt,
       ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), pr.network||'-'||pr.patient_id), NVL(dnm.drug_type_id, dscr.drug_type_id) ORDER BY pr.order_dt DESC) rnum
     FROM report_dates rd
-    JOIN fact_prescriptions pr ON pr.order_dt <= rd.year_back_dt
+    JOIN fact_prescriptions pr
+      ON pr.order_dt <= rd.year_back_dt AND pr.network NOT IN ('QHN','SBN') -- exclude Networks that have switched to EPIC
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
-     ON mdm.network = pr.network AND mdm.patientid = TO_CHAR(pr.patient_id) AND mdm.epic_flag = 'N'
+      ON mdm.network = pr.network AND mdm.patientid = TO_CHAR(pr.patient_id) AND mdm.epic_flag = 'N'
     LEFT JOIN ref_drug_names dnm ON dnm.drug_name = pr.drug_name 
     LEFT JOIN ref_drug_descriptions dscr ON dscr.drug_description = pr.drug_description 
     WHERE dnm.drug_type_id IN (33, 34) OR dscr.drug_type_id IN (33, 34) -- Diabetes and Antipsychotic Medications
@@ -40,7 +42,7 @@ WITH
      AND lkp.value = pd.diag_code AND lkp.criterion_id = 6 -- DIAGNOSIS:DIABETES
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
       ON mdm.network = pd.network AND TO_NUMBER(mdm.patientid) = pd.patient_id AND mdm.epic_flag = 'N'
-    WHERE pd.diag_coding_scheme IN (5, 10) AND pd.current_flag = '1' AND pd.stop_date IS NULL
+    WHERE pd.network NOT IN ('QHN','SBN') AND pd.diag_coding_scheme IN (5, 10) AND pd.current_flag = '1' AND pd.stop_date IS NULL
     GROUP BY NVL(TO_CHAR(mdm.eid), pd.network||'-'||pd.patient_id)
   ),
   diabetes_prescriptions AS
@@ -71,9 +73,19 @@ WITH
       ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id) ORDER BY a1c.result_dt DESC) rnum
     FROM report_dates dt
     JOIN dsrip_tr016_a1c_glucose_rslt a1c
-      ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt 
+      ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt -- OK: probably do need this condition but it does not hurt 
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
       ON mdm.network = a1c.network AND TO_NUMBER(mdm.patientid) = a1c.patient_id AND mdm.epic_flag = 'N'
+  ),
+  pcp_info AS
+  (
+    SELECT --+ materialize
+      NVL(TO_CHAR(mdm.eid), pcp.network||'-'||pcp.patient_id) patient_gid,
+      prim_care_provider, pcp_visit_facility, pcp_visit_number, pcp_visit_dt,
+      ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), pcp.network||'-'||pcp.patient_id) ORDER BY pcp.pcp_visit_dt DESC NULLS LAST) rnum
+    FROM dsrip_tr016_pcp_info pcp
+    LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
+      ON mdm.network = pcp.network AND TO_NUMBER(mdm.patientid) = pcp.patient_id AND mdm.epic_flag = 'N'
   )
 SELECT
   dt.report_dt AS report_period_start_dt,
@@ -92,6 +104,8 @@ SELECT
   pd.state,
   pd.mailing_code zip_code,
   amed.medication,
+  pcp.prim_care_provider,
+  pcp.pcp_visit_dt AS last_pcp_visit_dt,
   tst.visit_id,
   tst.visit_number,
   tst.visit_type_id,
@@ -109,6 +123,7 @@ SELECT
   --pcp, medicaid_ind, plan_id, plan_name, icd_code
 FROM prescriptions amed
 CROSS JOIN report_dates dt
+JOIN pcp_info pcp ON pcp.patient_gid = amed.patient_gid
 LEFT JOIN diabetes_diagnoses diab ON diab.patient_gid = amed.patient_gid
 LEFT JOIN diabetes_prescriptions dmed ON dmed.patient_gid = amed.patient_gid
 LEFT JOIN a1c_glucose_tests tst ON tst.patient_gid = amed.patient_gid AND tst.rnum = 1

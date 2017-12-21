@@ -23,10 +23,12 @@ exec xl.open_log('DSRIP-TR016', 'Preparing source data for DSRIP report TR016', 
 exec xl.begin_action('Truncating staging tables');
 truncate table DSRIP_TR016_A1C_GLUCOSE_RSLT;
 truncate table DSRIP_TR016_PAYERS;
+truncate table DSRIP_TR016_PCP_INFO;
 exec xl.end_action;
 
 @copy_table.sql TR016_A1C_GLUCOSE_RSLT
 @copy_table.sql TR016_PAYERS
+@copy_table.sql TR016_PCP_INFO
 
 exec xl.close_log('Successfully completed');
 

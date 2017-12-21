@@ -30,8 +30,8 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id = 3
-order by tstamp desc;
+where proc_id IN (141)
+order by tstamp;
 
 select proc_id, action, cnt, seconds 
 from dbg_performance_data 
@@ -43,7 +43,7 @@ from
 (
   select proc_id, action, cnt, seconds 
   from dbg_performance_data 
-  where proc_id in (98, 100)
+  where proc_id in (137,138)
 --  and action like 'Adding%'
 )
 pivot 

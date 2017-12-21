@@ -16,6 +16,8 @@ SELECT
   state,
   zip_code,
   medication,
+  prim_care_provider,
+  last_pcp_visit_dt,
   visit_id,
   visit_number,
   visit_type_id,
