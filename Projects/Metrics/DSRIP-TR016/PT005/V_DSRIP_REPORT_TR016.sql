@@ -73,7 +73,7 @@ WITH
       ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id) ORDER BY a1c.result_dt DESC) rnum
     FROM report_dates dt
     JOIN dsrip_tr016_a1c_glucose_rslt a1c
-      ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt -- OK: probably do need this condition but it does not hurt 
+      ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt -- OK: probably do not need this condition but it does not hurt 
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
       ON mdm.network = a1c.network AND TO_NUMBER(mdm.patientid) = a1c.patient_id AND mdm.epic_flag = 'N'
   ),

@@ -1,4 +1,7 @@
 CREATE OR REPLACE PROCEDURE prepare_dsrip_report_tr001(p_report_month IN DATE DEFAULT NULL) AS
+/*
+  2017-12-26, OK: removed where condition "rnum=1" for V_DSRIP_REPORT_TR001_EPIC 
+*/
   d_report_mon  DATE;
   n_cnt         PLS_INTEGER;
 BEGIN
@@ -54,7 +57,6 @@ BEGIN
     i_operation => 'INSERT',
     i_tgt => 'DSRIP_REPORT_TR001_EPIC',
     i_src => 'V_DSRIP_REPORT_TR001_EPIC',
-    i_whr => 'WHERE rnum = 1',
     i_commit_at => -1
   );
   

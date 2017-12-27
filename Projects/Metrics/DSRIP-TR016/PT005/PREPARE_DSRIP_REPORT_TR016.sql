@@ -24,17 +24,32 @@ BEGIN
       ' data from '||n_cnt||' Networks only.'||CHR(10)||'Should be from 6 Networks.'
     ); 
   END IF;
+  
+  SELECT COUNT(1) INTO n_cnt FROM v_dsrip_report_tr016_epic;
+  IF n_cnt = 0 THEN
+    Raise_Application_Error
+    (
+      -20000,
+      'Staging table EPIC_CLARITY.DSRIP_DIAB_SCRN_EPIC contains no data for '||TO_CHAR(d_report_mon, 'Month YYYY')||'.'
+    ); 
+  END IF;
   xl.end_action;
   
-  xl.begin_action('Deleting old TR016 data (if any) for '||d_report_mon);
-  DELETE FROM dsrip_report_tr016 WHERE report_period_start_dt = d_report_mon;
-  n_cnt := SQL%ROWCOUNT;
+  n_cnt := 0;
   
-  DELETE FROM dsrip_report_results WHERE report_cd = 'DSRIP-TR016' AND period_start_dt = d_report_mon;
-  n_cnt := n_cnt+ SQL%ROWCOUNT;
-  xl.end_action(n_cnt||' rows deleted');
+  xl.begin_action('Deleting old TR016 data (if any) for '||d_report_mon);
+
+  DELETE FROM dsrip_report_tr016 WHERE report_period_start_dt = d_report_mon;
+  n_cnt := n_cnt + SQL%ROWCOUNT;
+  
+  DELETE FROM dsrip_report_tr016_epic WHERE report_period_start_dt = d_report_mon;
+  n_cnt := n_cnt + SQL%ROWCOUNT;
+  
+  DELETE FROM dsrip_report_results WHERE report_cd LIKE 'DSRIP-TR016%' AND period_start_dt = d_report_mon;
+  n_cnt := n_cnt + SQL%ROWCOUNT;
   
   COMMIT;
+  xl.end_action(n_cnt||' rows deleted');
   
   etl.add_data
   (
@@ -57,6 +72,31 @@ BEGIN
         COUNT(DISTINCT patient_gid) denominator,
         COUNT(DISTINCT CASE WHEN result_dt IS NOT NULL THEN patient_gid END) numerator_1
       FROM dsrip_report_tr016 r
+      WHERE report_period_start_dt = '''||d_report_mon||'''
+      GROUP BY GROUPING SETS((report_period_start_dt, network, facility_name),(report_period_start_dt))',
+    i_commit_at => -1
+  );
+  
+  etl.add_data
+  (
+    i_operation => 'INSERT',
+    i_tgt => 'DSRIP_REPORT_TR016_EPIC',
+    i_src => 'V_DSRIP_REPORT_TR016_EPIC',
+    i_commit_at => -1
+  );
+  
+  etl.add_data
+  (
+    i_operation => 'INSERT',
+    i_tgt => 'DSRIP_REPORT_RESULTS',
+    i_src => 'SELECT 
+        ''DSRIP-TR016-EPIC'' report_cd, 
+        report_period_start_dt AS period_start_dt,
+        DECODE(GROUPING(network), 1, ''ALL networks'', network) network,
+        DECODE(GROUPING(facility_name), 1, ''ALL facilities'', facility_name) AS facility_name,
+        COUNT(1) denominator,
+        COUNT(numerator_flag_hemoglobin_test) numerator_1
+      FROM dsrip_report_tr016_epic r
       WHERE report_period_start_dt = '''||d_report_mon||'''
       GROUP BY GROUPING SETS((report_period_start_dt, network, facility_name),(report_period_start_dt))',
     i_commit_at => -1

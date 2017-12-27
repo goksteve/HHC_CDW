@@ -30,12 +30,12 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id IN (141)
+where proc_id IN (143)
 order by tstamp;
 
 select proc_id, action, cnt, seconds 
 from dbg_performance_data 
-where proc_id = 117
+where proc_id = 139
 order by seconds desc;
 
 select *

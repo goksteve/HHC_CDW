@@ -1,8 +1,8 @@
 CREATE OR REPLACE VIEW v_dsrip_report_tr001_epic AS
 SELECT
+ -- 2017-12-26, OK: removed ROWNUM()
   dt.report_period_start_dt,
-  src.*,
-  ROW_NUMBER() OVER(PARTITION BY visit_id ORDER BY etl_load_date DESC) rnum
+  src.*
 FROM
 (
   SELECT

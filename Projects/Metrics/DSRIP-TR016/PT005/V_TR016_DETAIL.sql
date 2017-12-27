@@ -33,5 +33,9 @@ SELECT
   result_value,
   NVL2(result_dt, 'Y', 'N') screened
 FROM dsrip_report_tr016 t
-WHERE report_period_start_dt = NVL(SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER'), (SELECT MAX(report_period_start_dt) FROM dsrip_report_tr016))
+WHERE report_period_start_dt = NVL
+(
+  SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER'),
+  (SELECT MAX(report_period_start_dt) FROM dsrip_report_tr016)
+)
 ORDER BY patient_name;
