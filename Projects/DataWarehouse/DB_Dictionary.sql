@@ -12,7 +12,7 @@ from
   and owner in ('UD_MASTER'/*,'HHC_CUSTOM','CDW','PT005'*/)
 --  and table_name = 'EMP_FACILITY_ADDL_ADDR'
 --  and column_name like 'LOCATION_ID'
-  and column_name like 'OTHER_FACILITY_ID'
+  and column_name like 'DEPARTMENT_ID'
 --  and (column_name like 'ZIP%' or column_name like 'POSTAL%' or column_name like 'MAILING%' or column_name like '%ADDRESS%' or column_name like '%CITY%' or column_name like '%COUNTRY%' or column_name like 'STATE')
   --and column_name  'RX_ID'
   --and column_name in ('EMP_PROVIDER_ID', 'PATIENT_ID')

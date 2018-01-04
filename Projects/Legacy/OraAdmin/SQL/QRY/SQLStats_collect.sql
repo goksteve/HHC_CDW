@@ -2,7 +2,7 @@ CREATE TABLE my_stat
 (
   SQL_ID        VARCHAR2(13),
   EXECUTIONS    NUMBER,
-  ELAPSED_TIME  NUMBER
+  ELAPSED_TIME  NUMBER,
   SQL_TEXT      VARCHAR2(1000),
   DTSTAMP       DATE,
   rnum          number(34)
@@ -17,7 +17,9 @@ group by sql_id having count(1)>1;
 begin
   loop
     insert into my_stat 
-    select sql_id, executions, sysdate, sql_text, elapsed_time, null from v$sqlarea;
+    select sql_id, executions, sysdate, sql_text, elapsed_time, null 
+    from v$sqlarea;
+    
     commit;
     
     dbms_lock.sleep(60);
