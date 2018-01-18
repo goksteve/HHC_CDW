@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW v_dsrip_report_tr016 AS
 WITH
+  -- 16-Jan-2018, OK: added USE_HASH hints into the main query
   -- 12-Dec-2017, OK: excluded QHN and SBN networks
   report_dates AS
   (
@@ -87,7 +88,7 @@ WITH
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
       ON mdm.network = pcp.network AND TO_NUMBER(mdm.patientid) = pcp.patient_id AND mdm.epic_flag = 'N'
   )
-SELECT
+SELECT --+ USE_HASH(f pd pm pr)
   dt.report_dt AS report_period_start_dt,
   amed.patient_gid,
   NVL(tst.network, amed.network) network,

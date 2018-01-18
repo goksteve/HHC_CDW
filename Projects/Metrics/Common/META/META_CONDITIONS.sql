@@ -12,7 +12,8 @@ CREATE TABLE meta_conditions
   include_exclude_ind   CHAR(1) DEFAULT 'I' NOT NULL,
    CONSTRAINT chk_metacond_inclexcl CHECK(include_exclude_ind IN ('I', 'E')),
   CONSTRAINT pk_meta_conditions PRIMARY KEY(criterion_id, network, qualifier, value),
-  CONSTRAINT fk_meta_condition_criteria FOREIGN KEY(criterion_id) REFERENCES meta_criteria ON DELETE CASCADE 
+  CONSTRAINT meta_condition_fk_criteria FOREIGN KEY(criterion_id) REFERENCES meta_criteria ON DELETE CASCADE, 
+  CONSTRAINT meta_condition_fk_type FOREIGN KEY(condition_type_cd) REFERENCES meta_condition_types
 ) ORGANIZATION INDEX;
 
 GRANT SELECT ON meta_conditions TO PUBLIC;

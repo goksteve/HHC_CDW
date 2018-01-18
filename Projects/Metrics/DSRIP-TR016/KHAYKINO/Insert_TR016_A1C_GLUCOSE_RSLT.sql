@@ -1,5 +1,8 @@
 prompt Populating table DSRIP_TR016_A1C_GLUCOSE_RSLT ... 
 
+set timi on
+set feedback on
+
 INSERT --+ parallel(8) 
 INTO dsrip_tr016_a1c_glucose_rslt
 SELECT
@@ -22,7 +25,6 @@ FROM
 (
   SELECT  --+ ordered full(r) use_hash(e) use_hash(v)
     DISTINCT
-    db.network,
     v.facility_id,
     v.patient_id,
     v.visit_id,
@@ -55,3 +57,8 @@ FROM
   JOIN ud_master.result_field rf ON rf.data_element_id = r.data_element_id
 )
 WHERE rnum = 1;
+
+set timi off
+set feedback off
+
+COMMIT;

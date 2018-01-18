@@ -1,5 +1,8 @@
 prompt Populating table DSRIP_TR016_PCP_INFO ...
 
+set timi on
+set feedback on
+
 INSERT --+ parallel(8) 
 INTO dsrip_tr016_pcp_info
 SELECT
@@ -22,3 +25,8 @@ FROM
 ) pv 
 LEFT JOIN ud_master.facility f ON f.facility_id = pv.facility_id
 WHERE pv.rnum = 1;
+
+set timi off
+set feedback off
+
+COMMIT;

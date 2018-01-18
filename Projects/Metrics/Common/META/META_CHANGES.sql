@@ -1,5 +1,3 @@
-CREATE SEQUENCE seq_meta_changes NOCACHE; 
-
 CREATE TABLE meta_changes
 (
   change_id NUMBER(10) CONSTRAINT pk_meta_changes PRIMARY KEY,

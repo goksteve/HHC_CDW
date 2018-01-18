@@ -1,27 +1,23 @@
-DROP TABLE meta_logic PURGE;
-DROP TABLE meta_criteria_combo PURGE;
-DROP TABLE meta_conditions PURGE;
-DROP TABLE meta_criteria PURGE;
-DROP TABLE dsrip_reports PURGE;
+exec dbm.drop_tables('DSRIP_REPORT_RESULTS,META_LOGIC,META_CONDITIONS,META_CRITERIA_COMBO');
+exec dbm.drop_tables('DSRIP_REPORTS,META_CRITERIA,META_LOGIC_H,META_CONDITIONS_H,META_CRITERIA_COMBO_H,META_CRITERIA_H,META_CHANGES,META_CONDITION_TYPES');
 
+
+alter session set nls_length_semantics='BYTE';
+
+@META_CONDITION_TYPES.sql
 @META_CRITERIA.sql
 @META_CONDITIONS.sql
 @META_CRITERIA_COMBO.sql
 @DSRIP_REPORTS.sql
 @META_LOGIC.sql
 
--- Only in PT005:
-DROP TABLE dsrip_report_results PURGE;
-DROP TABLE meta_logic_h PURGE;
-DROP TABLE meta_conditions_h PURGE;
-DROP TABLE meta_criteria_combo_h PURGE;
-DROP TABLE meta_criteria_h PURGE;
-DROP TABLE meta_changes PURGE;
+-- In PT005 only:
 DROP SEQUENCE seq_meta_changes;
+CREATE SEQUENCE seq_meta_changes NOCACHE;
+@META_CHANGES.sql
 
 @DSRIP_REPORT_RESULTS.sql
 @PKG_METADATA_ADMIN.sql
-@META_CHANGES.sql
 @META_CRITERIA_H.sql
 @META_CRITERIA_COMBO_H.sql
 @META_CONDITIONS_H.sql

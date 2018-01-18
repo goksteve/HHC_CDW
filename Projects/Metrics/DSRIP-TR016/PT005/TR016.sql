@@ -9,8 +9,13 @@
 -- Every month:
 whenever sqlerror exit 1
 whenever oserror exit 1
+
 set line 100
+set arraysize 5000
+set copycommit 2
 set verify off
+set echo off
+set feedback off
 
 column 1 new_value 1
 select '' "1" from dual where rownum = 0;
@@ -26,9 +31,9 @@ truncate table DSRIP_TR016_PAYERS;
 truncate table DSRIP_TR016_PCP_INFO;
 exec xl.end_action;
 
-@copy_table.sql TR016_A1C_GLUCOSE_RSLT
-@copy_table.sql TR016_PAYERS
-@copy_table.sql TR016_PCP_INFO
+@copy_table.sql DSRIP_TR016_A1C_GLUCOSE_RSLT
+@copy_table.sql DSRIP_TR016_PAYERS
+@copy_table.sql DSRIP_TR016_PCP_INFO
 
 exec xl.close_log('Successfully completed');
 

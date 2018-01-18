@@ -111,7 +111,7 @@ FROM
         CASE WHEN v.visit_type_cd <> 'IP' THEN v.admission_dt END AS follow_up_dt, 
         CASE WHEN v.visit_type_cd <> 'IP' THEN fd.facility_name END AS follow_up_facility,
         CASE WHEN v.visit_type_cd <> 'IP' THEN v.fin_class END AS follow_up_fin_class,
-        RANK() OVER
+        ROW_NUMBER() OVER
         (
           PARTITION BY v.network, v.visit_id
           ORDER BY
@@ -120,13 +120,13 @@ FROM
             WHEN SUBSTR(mdm.facility_name, 1, 2) = fd.facility_code THEN 2
             ELSE 3
           END, eid
-        ) mdm_rnk
+        ) mdm_rnum
       FROM dsrip_tr001_visits v
       JOIN facility_dimension fd ON fd.network = v.network AND fd.facility_id = v.facility_id
       LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
-        ON mdm.network = v.network AND TO_NUMBER(mdm.patientid) = v.patient_id AND mdm.epic_flag = 'N'
+        ON mdm.network = v.network AND TO_NUMBER(mdm.patientid) = v.patient_id AND mdm.epic_flag = 'N' AND mdm.dc_flag IS NULL
     )
-    WHERE mdm_rnk = 1
+    WHERE mdm_rnum = 1
   ) q
   ON q.discharge_dt >= ADD_MONTHS(dt.report_period_start_dt, -2)
   AND q.discharge_dt < ADD_MONTHS(dt.report_period_start_dt, -1)

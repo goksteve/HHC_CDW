@@ -13,6 +13,4 @@ prompt Copying &TABLE ...
 @@copy_from GP2
 @@copy_from NBN
 @@copy_from NBX
-@@copy_from QHN
-@@copy_from SBN
 @@copy_from SMN

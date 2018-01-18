@@ -31,12 +31,11 @@ and sql_id = '91mhcwz2h69k8';
 /*
   Here is what I got:
   
-  DBID	      SQL_ID	P     LAN_HASH_VALUE
-  ----------  ------------- --------------
+  DBID	      SQL_ID	      PLAN_HASH_VALUE
+  ----------  ------------- ---------------
   1937289485	91mhcwz2h69k8	2800819538
   1937289485	91mhcwz2h69k8	609874468
 */
-
 
 -- To see the details of a particular execution plan:
 SELECT * FROM table

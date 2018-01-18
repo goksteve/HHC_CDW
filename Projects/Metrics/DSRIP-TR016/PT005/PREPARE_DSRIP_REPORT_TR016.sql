@@ -1,4 +1,7 @@
 CREATE OR REPLACE PROCEDURE prepare_dsrip_report_tr016(p_report_month IN DATE DEFAULT NULL) AS
+/*
+  16-Jan-2018, OK: added hint PARALLEL(16);
+*/
   d_report_mon  DATE;
   n_cnt         PLS_INTEGER;
 BEGIN
@@ -53,7 +56,7 @@ BEGIN
   
   etl.add_data
   (
-    i_operation => 'INSERT',
+    i_operation => 'INSERT /*+PARALLEL(16)*/',
     i_tgt => 'DSRIP_REPORT_TR016',
     i_src => 'V_DSRIP_REPORT_TR016',
     i_whr => 'WHERE rnum = 1',

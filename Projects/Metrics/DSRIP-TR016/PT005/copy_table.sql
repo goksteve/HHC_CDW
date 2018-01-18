@@ -1,18 +1,12 @@
-set arraysize 5000
-set copycommit 2
-set verify off
-set echo off
-set feedback off
-
 define TABLE=&1
 
 call xl.begin_action('Copying &TABLE data');
 
-@@&TABLE._copy CBN
-@@&TABLE._copy GP1
-@@&TABLE._copy GP2
-@@&TABLE._copy NBN
-@@&TABLE._copy NBX
-@@&TABLE._copy SMN
+@@copy_from CBN
+@@copy_from GP1
+@@copy_from GP2
+@@copy_from NBN
+@@copy_from NBX
+@@copy_from SMN
 
 call xl.end_action();

@@ -1,5 +1,3 @@
-DROP TABLE dsrip_report_results PURGE;
-
 CREATE TABLE dsrip_report_results
 (
   report_cd               VARCHAR2(16),
