@@ -1,23 +1,18 @@
-create table ref_diagnoses
+ALTER SESSION SET NLS_LENGTH_SEMANTICS = 'BYTE';
+
+exec dbm.drop_tables('REF_DIAGNOSES');
+
+CREATE TABLE ref_diagnoses
 (
-  coding_scheme,
-  code,
-  description,
-  constraint ref_diagnoses_pk primary key(coding_scheme, code)
-) organization index compress overflow
-partition by list(coding_scheme)
+  coding_scheme   VARCHAR2(10),
+  code            VARCHAR2(100),
+  description     VARCHAR2(2000),
+  CONSTRAINT ref_diagnoses_pk PRIMARY KEY(coding_scheme, code)
+) ORGANIZATION INDEX COMPRESS OVERFLOW
+PARTITION BY LIST(coding_scheme)
 (
-  partition icd10 values ('ICD-10-CM'),
-  partition icd9 values ('ICD-9')
-)
-as select
-  coding_scheme,
-  code,
-  min(description) keep(dense_rank first order by cnt desc) description 
-from
-(
-  select coding_scheme, code, description, sum(cnt) cnt
-  from stg_icd_codes
-  group by coding_scheme, code, description
-)
-group by coding_scheme, code; 
+  PARTITION icd10 VALUES ('ICD-10'),
+  PARTITION icd9 VALUES ('ICD-9')
+);
+
+GRANT SELECT ON ref_diagnoses TO PUBLIC;

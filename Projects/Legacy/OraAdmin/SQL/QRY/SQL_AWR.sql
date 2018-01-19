@@ -4,8 +4,8 @@ from
 (
   select distinct sh.top_level_sql_id sql_id
   from dba_users u
-  join dba_hist_active_sess_history sh on sh.user_id = u.user_id
-  where u.username = 'OK'
+  join DBA_HIST_ACTIVE_SESS_HISTORY sh on sh.user_id = u.user_id
+  where u.username = 'KHAYKINO'
   and sh.snap_id >= 
   (
     select min(snap_id)

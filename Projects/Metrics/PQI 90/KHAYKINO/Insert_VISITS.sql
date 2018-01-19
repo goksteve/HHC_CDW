@@ -2,7 +2,7 @@ set timi on
 set feed on
 
 prompt - Populating table DSRIP_PQI_7_8_VISITS ...
-INSERT /*+ parallel(4) */ INTO dsrip_pqi_7_8_visits
+INSERT /*+ parallel(4)*/ INTO dsrip_pqi_7_8_visits
 WITH
   dt AS
   (
@@ -58,12 +58,27 @@ SELECT
       ORDER BY cmv.code
     ),
     ', '
-  ) heart_failure_codes  
+  ) heart_failure_codes,
+  concat_v2_set
+  (
+    CURSOR
+    (
+      SELECT DISTINCT cmv.code
+      FROM ud_master.active_problem ap
+      JOIN ud_master.problem prob ON prob.patient_id = ap.patient_id AND prob.problem_number = ap.problem_number
+      JOIN ud_master.problem_cmv cmv ON cmv.patient_id = prob.patient_id AND cmv.problem_number = ap.problem_number
+       AND cmv.coding_scheme_id = 10 AND cmv.code IN ('I12.9','I13.10')
+      WHERE ap.visit_id = v.visit_id
+      ORDER BY cmv.code
+    ),
+    ', '
+  ) exclusion_codes
 FROM dt
 JOIN ud_master.visit v ON v.discharge_date_time >= dt.begin_dt AND v.discharge_date_time < dt.end_dt
 JOIN ud_master.visit_type vt ON vt.visit_type_id = v.visit_type_id AND vt.abbreviation = 'IP'
 JOIN hhc_custom.hhc_patient_dimension p ON p.patient_id = v.patient_id
-JOIN ud_master.financial_class fc ON fc.financial_class_id = v.financial_class_id;
+JOIN ud_master.financial_class fc ON fc.financial_class_id = v.financial_class_id
+WHERE p.birthdate < ADD_MONTHS(v.admission_date_time, -18*12);
 
 set feed off
 set timi off

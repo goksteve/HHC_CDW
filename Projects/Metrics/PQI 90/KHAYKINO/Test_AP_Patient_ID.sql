@@ -14,7 +14,7 @@ from
   join patient p on p.patient_id = pr.patient_id
 )
 group by rollup(flag) order by flag nulls last;
--- ~ 1.5% of Problems are for "Collapsed" Patients
+-- ~ 1.5% of the Problems are for "Collapsed" Patients
 
 with det as
 (

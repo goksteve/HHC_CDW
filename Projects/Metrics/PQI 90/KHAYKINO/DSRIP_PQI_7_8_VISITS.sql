@@ -16,6 +16,7 @@ CREATE TABLE dsrip_pqi_7_8_visits
   fin_class                  VARCHAR2(100 BYTE),
   attending_emp_provider_id  NUMBER(12),
   resident_emp_provider_id   NUMBER(12),
-  hypertension_code          VARCHAR2(100 BYTE),
-  heart_failure_code         VARCHAR2(100 BYTE)
+  hypertension_codes         VARCHAR2(100 BYTE),
+  heart_failure_codes        VARCHAR2(100 BYTE),
+  exclusion_codes            VARCHAR2(100 BYTE)
 ) COMPRESS BASIC;
