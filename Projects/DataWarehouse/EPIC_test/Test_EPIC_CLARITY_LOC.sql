@@ -57,3 +57,9 @@ group by loc_id having count(1) > 1;
 select distinct specialty
 from clarity_dep
 order by 1; 
+
+select loc_id, loc_name, adt_parent_id
+from clarity_loc
+--where loc_id in (11, 1101)
+where adt_parent_id = 24
+;

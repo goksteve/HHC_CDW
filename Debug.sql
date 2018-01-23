@@ -25,18 +25,18 @@ from
   ( 
     select l.*, nvl(end_time, systimestamp) - start_time diff 
     from dbg_process_logs l
-    where name = 'PREPARE_DSRIP_REPORT_TR016' 
+--    where name = 'PREPARE_DSRIP_REPORT_TR016' 
   )
 )
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id IN (156)
+where proc_id IN (171)
 order by tstamp;
 
 select proc_id, action, cnt, seconds 
 from dbg_performance_data 
-where proc_id = 139
+where proc_id = 168
 order by seconds desc;
 
 select *

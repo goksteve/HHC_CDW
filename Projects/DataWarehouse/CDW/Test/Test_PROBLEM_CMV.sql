@@ -1,36 +1,30 @@
-alter session force parallel dml;
-alter session force parallel ddl;
+select count(1) cnt, count(distinct icd10_code) icd10_uniq, count(distinct icd9_code) icd9_uniq
+from map_diagnose_codes;
+-- 36999	30640	11834
 
-SELECT coding_scheme, count(1) cnt
+select coding_scheme, count(1) 
 from ref_diagnoses
 group by coding_scheme;
+/*
+CODING_SCHEME	COUNT(1)
+------------- -------
+ICD-9	          13012
+ICD-10	        33463
+*/
 
-select code
-from ref_diagnoses
-where coding_scheme = 'ICD-10'
-minus
-select icd10_code from map_diagnose_codes;
-
-select --+ parallel(16)
-  *
-from problem_cmv
-where coding_scheme_id = 10
-and code = 'A25.9';
-
-select
-  * 
-from problem_cmv
-where coding_scheme_id = 9
-and patient_id = 995187
-and network = 'SMN'
-and problem_number = 1;
+alter session force parallel dml;
+alter session force parallel ddl;
 
 drop table tst_ok_map_codes purge;
 
 create table tst_ok_map_codes parallel 16 as
 SELECT
   icd10_code, icd9_code, count(1) cnt
-FROM problem_cmv
+FROM
+(
+  select network, patient_id, problem_number, coding_scheme_id, code
+  from problem_cmv
+)
 PIVOT
 (
   MAX(code) as code
@@ -48,12 +42,6 @@ select
    count(case when icd10_code is not null and icd9_code is not null then 1 end) map_cnt,
    sum(case when icd10_code is not null and icd9_code is not null then cnt end) map_sum
 from tst_ok_map_codes;
-/*
-  CNT         TOTAL  ICD10_CNT  ICD10_UNIQ  ICD9_CNT  ICD9_UNIQ  MAP_CNT    MAP_SUM
-------  -----------  ---------  ----------  --------  ---------  -------  ---------
-46,138  145,681,613     34,011      33,461    14,002     13,012    1,876	7,495,127
-
-*/
 
 select coding_scheme, count(1)
 from ref_diagnoses
@@ -64,6 +52,8 @@ CODING_SCHEME	COUNT(1)
 ICD-10	        33463
 ICD-9	          13012
 */
+
+drop table tst_ok_problem_cmv purge;
 
 create table tst_ok_problem_cmv parallel 16 compress basic as
 select
@@ -99,7 +89,7 @@ from
       icd10_nulls,
       round(icd9_nulls/problem_cnt, 2) icd9_null_pct,
       round(icd10_nulls/problem_cnt, 2) icd10_null_pct
-    from tst_ok_problem_cmv_1 t
+    from tst_ok_problem_cmv t
   )
   unpivot 
   (
@@ -128,3 +118,4 @@ pivot
   )
 )
 order by 1, 2 desc;
+

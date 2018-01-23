@@ -1,3 +1,5 @@
+ALTER SESSION SET NLS_LENGTH_SEMANTICS='BYTE';
+
 CREATE TABLE meta_conditions
 (
   criterion_id          NUMBER(6),

@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_pqi_summary_cdw AS
+CREATE OR REPLACE VIEW v_pqi90_summary_cdw AS
 SELECT
   TO_CHAR(period_start_dt, 'Mon-YYYY') reporting_month,
   network, facility_name, 
