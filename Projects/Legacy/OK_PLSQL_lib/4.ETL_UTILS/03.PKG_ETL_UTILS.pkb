@@ -5,43 +5,42 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
   Package for performing ETL tasks
   History of changes (newest to oldest):
   ------------------------------------------------------------------------------
-  30-MAR-2017, OK: fix
-  20-SEP-2017, OK: fix
+  01-FEB-2018, OK: added parameter P_CHANGES_ONLY to ADD_DATA;
 */
   -- Procedure RESOLVE_NAME resolves the given table/view/synonym name
   -- into complete description of the underlying table/view:
   -- schema, table/view name, DB link
   PROCEDURE resolve_name
   (
-    i_name    IN  VARCHAR2,
-    o_schema  OUT VARCHAR2,
-    o_table   OUT VARCHAR2,
-    o_db_link OUT VARCHAR2
+    p_name    IN  VARCHAR2,
+    p_schema  OUT VARCHAR2,
+    p_table   OUT VARCHAR2,
+    p_db_link OUT VARCHAR2
   ) IS
     l_name  VARCHAR2(92);
     l       PLS_INTEGER;
     n       PLS_INTEGER;
     m       PLS_INTEGER;
   BEGIN
-    l_name := UPPER(i_name);
+    l_name := UPPER(p_name);
     n := INSTR(l_name, '.');
     m := INSTR(l_name, '@');
     l := LENGTH(l_name);
  
     IF n>0 OR m>0 THEN
       IF n>0 THEN
-        o_schema := SUBSTR(l_name, 1, n-1);
-        o_table := SUBSTR(l_name, n+1, CASE WHEN m>0 THEN m-n-1 ELSE l END);
-        o_db_link := CASE WHEN m>0 THEN SUBSTR(l_name, m) END;
+        p_schema := SUBSTR(l_name, 1, n-1);
+        p_table := SUBSTR(l_name, n+1, CASE WHEN m>0 THEN m-n-1 ELSE l END);
+        p_db_link := CASE WHEN m>0 THEN SUBSTR(l_name, m) END;
       ELSE
-        o_table := SUBSTR(l_name, 1, m-1);
-        o_db_link := SUBSTR(l_name, m);
-        SELECT username INTO o_schema FROM user_db_links WHERE db_link = UPPER(SUBSTR(o_db_link, 2));
+        p_table := SUBSTR(l_name, 1, m-1);
+        p_db_link := SUBSTR(l_name, m);
+        SELECT username INTO p_schema FROM user_db_links WHERE db_link = UPPER(SUBSTR(p_db_link, 2));
       END IF;
  
     ELSE
       SELECT table_owner, table_name, db_link
-      INTO o_schema, o_table, o_db_link
+      INTO p_schema, p_table, p_db_link
       FROM
       (
         SELECT
@@ -49,30 +48,30 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
           object_name table_name,
           NULL db_link
         FROM user_objects
-        WHERE object_type IN ('TABLE','VIEW') AND object_name = UPPER(i_name)
+        WHERE object_type IN ('TABLE','VIEW') AND object_name = UPPER(p_name)
         UNION ALL
         SELECT
           table_owner,
           table_name,
           NVL2(db_link, '@'||db_link, NULL) db_link
         FROM user_synonyms
-        WHERE synonym_name = UPPER(i_name)
+        WHERE synonym_name = UPPER(p_name)
       );
     END IF;
   EXCEPTION
    WHEN NO_DATA_FOUND THEN
-    Raise_Application_Error(-20000, 'Unknown table/view: '||i_name);
+    Raise_Application_Error(-20000, 'Unknown table/view: '||p_name);
   END;
  
   
   -- Function GET_COL_LIST returns a comma-separated list of all the table column names.
-  FUNCTION get_col_list(i_table IN VARCHAR2) RETURN VARCHAR2 IS
+  FUNCTION get_col_list(p_table IN VARCHAR2) RETURN VARCHAR2 IS
     l_schema  VARCHAR2(30);
     l_tname   VARCHAR2(30);
     l_dblink  VARCHAR2(100);
     ret       VARCHAR2(1000);
   BEGIN
-    resolve_name(i_table, l_schema, l_tname, l_dblink);
+    resolve_name(p_table, l_schema, l_tname, l_dblink);
    
     SELECT concat_v2_set
     (
@@ -92,13 +91,13 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
   -- Function GET_KEY_COL_LIST returns a comma-separated list of the table key column names.
   -- By default, describes the table PK.
   -- Optionally, can describe the given UK,
-  FUNCTION get_key_col_list(i_table IN VARCHAR2, i_key IN VARCHAR2 DEFAULT NULL) RETURN VARCHAR2 IS
+  FUNCTION get_key_col_list(p_table IN VARCHAR2, p_key IN VARCHAR2 DEFAULT NULL) RETURN VARCHAR2 IS
     l_schema  VARCHAR2(30);
     l_tname   VARCHAR2(30);
     l_dblink  VARCHAR2(100);
     ret       VARCHAR2(1000);
   BEGIN
-    resolve_name(i_table, l_schema, l_tname, l_dblink);
+    resolve_name(p_table, l_schema, l_tname, l_dblink);
    
     SELECT concat_v2_set
     (
@@ -110,9 +109,9 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
         WHERE c.owner = l_schema AND c.table_name = l_tname
         AND
         (
-          c.constraint_type = 'P' AND i_key IS NULL
+          c.constraint_type = 'P' AND p_key IS NULL
           OR
-          c.constraint_name = i_key
+          c.constraint_name = p_key
         )
         ORDER BY cc.position
       )
@@ -123,12 +122,12 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
  
   -- Function GET_COLUMN_INFO returns a table-like structure with descriptions of all the table columns.
   -- See definition of the type RESULTSSTAGING.OBJ_COLUMN_INFO.
-  FUNCTION get_column_info(i_table IN VARCHAR2) RETURN tab_column_info PIPELINED IS
+  FUNCTION get_column_info(p_table IN VARCHAR2) RETURN tab_column_info PIPELINED IS
     l_schema  VARCHAR2(30);
     l_tname   VARCHAR2(30);
     l_dblink  VARCHAR2(100);
   BEGIN
-    resolve_name(i_table, l_schema, l_tname, l_dblink);
+    resolve_name(p_table, l_schema, l_tname, l_dblink);
    
     FOR r IN
     (
@@ -163,16 +162,17 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
   -- if at least one source row cannot be placed in the target table.
   PROCEDURE add_data
   (
-    i_operation     IN VARCHAR2, -- 'INSERT', 'UPDATE', 'MERGE', 'APPEND', 'REPLACE' or 'EQUALIZE'
-    i_tgt           IN VARCHAR2, -- target table to add rows to
-    i_src           IN VARCHAR2, -- source table or view
-    i_whr           IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to i_src
-    i_errtab        IN VARCHAR2 DEFAULT NULL, -- optional error log table,
-    i_hint          IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
-    i_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
-    o_add_cnt       IN OUT PLS_INTEGER, -- number of added/changed rows
-    o_err_cnt       IN OUT PLS_INTEGER  -- number of errors
+    p_operation     IN VARCHAR2, -- 'INSERT', 'UPDATE', 'MERGE', 'APPEND', 'REPLACE' or 'EQUALIZE'
+    p_tgt           IN VARCHAR2, -- target table to add rows to
+    p_src           IN VARCHAR2, -- source table or view
+    p_whr           IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to p_src
+    p_errtab        IN VARCHAR2 DEFAULT NULL, -- optional error log table,
+    p_hint          IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
+    p_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
+    p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_add_cnt       IN OUT PLS_INTEGER, -- number of added/changed rows
+    p_err_cnt       IN OUT PLS_INTEGER  -- number of errors
   ) IS
     l_operation     VARCHAR2(8);
     l_view_name     VARCHAR2(30);
@@ -211,11 +211,11 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       UNION
       SELECT ''TGT'', cl.owner, cl.table_name, cl.column_id, cl.column_name, cl.data_type, NVL2(cc.column_name, ''Y'', ''N'') uk, cl.nullable
       FROM all_tab_columns cl' ||
-      CASE WHEN i_uk_col_list IS NOT NULL THEN '
+      CASE WHEN p_uk_col_list IS NOT NULL THEN '
       LEFT JOIN
       (
         SELECT VALUE(t) column_name
-        FROM TABLE(split_string(UPPER('''||i_uk_col_list||'''))) t
+        FROM TABLE(split_string(UPPER('''||p_uk_col_list||'''))) t
       ) cc ON cc.column_name = cl.column_name'
       ELSE '
       LEFT JOIN all_constraints c
@@ -279,38 +279,38 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       COMMIT; -- to delete rows from TMP_ALL_COLUMNS
     END;
   BEGIN
-    xl.begin_action('Adding data to '||i_tgt, 'Operation: '||i_operation);
+    xl.begin_action('Adding data to '||p_tgt, 'Operation: '||p_operation);
     
-    l_cnt := INSTR(i_operation, ' ');
-    IF l_cnt = 0 THEN l_cnt := LENGTH(i_operation); END IF;
+    l_cnt := INSTR(p_operation, ' ');
+    IF l_cnt = 0 THEN l_cnt := LENGTH(p_operation); END IF;
    
-    l_operation := RTRIM(UPPER(SUBSTR(i_operation, 1, l_cnt)));
+    l_operation := RTRIM(UPPER(SUBSTR(p_operation, 1, l_cnt)));
    
-    l_hint1 := SUBSTR(i_operation, l_cnt+1);
+    l_hint1 := SUBSTR(p_operation, l_cnt+1);
  
     IF l_operation NOT IN ('INSERT', 'UPDATE', 'MERGE', 'REPLACE', 'EQUALIZE') THEN
       Raise_Application_Error(-20000, 'Unsupported operation: '||l_operation);
     END IF;
     
-    IF i_hint IS NOT NULL THEN
-      l_hint2 := '/*+ '||i_hint||' */';
+    IF p_hint IS NOT NULL THEN
+      l_hint2 := '/*+ '||p_hint||' */';
     END IF;
     
-    IF UPPER(i_src) LIKE '%SELECT%' THEN
+    IF UPPER(p_src) LIKE '%SELECT%' THEN
       l_view_name := 'ETL_'||xl.get_current_proc_id;
       l_src_tname := l_view_name;
-      l_cmd := 'CREATE VIEW '||l_view_name||' AS '||i_src;
+      l_cmd := 'CREATE VIEW '||l_view_name||' AS '||p_src;
       xl.begin_action('Creating view '||l_view_name, l_cmd, FALSE);
       EXECUTE IMMEDIATE l_cmd;
       xl.end_action;
     ELSE
-      l_src_tname := i_src;
+      l_src_tname := p_src;
     END IF;
     
     resolve_name(l_src_tname, l_src_schema, l_src_tname, l_src_db);
-    resolve_name(i_tgt, l_tgt_schema, l_tgt_tname, l_tgt_db);
-    IF i_errtab IS NOT NULL THEN
-      resolve_name(i_errtab, l_err_schema, l_err_tname, l_err_db);
+    resolve_name(p_tgt, l_tgt_schema, l_tgt_tname, l_tgt_db);
+    IF p_errtab IS NOT NULL THEN
+      resolve_name(p_errtab, l_err_schema, l_err_tname, l_err_db);
     END IF;
    
     collect_metadata;
@@ -332,18 +332,18 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     l_ts := SYSTIMESTAMP;
     
     IF l_operation = 'REPLACE' THEN
-      xl.begin_action('Truncating table '||i_tgt);
-      EXECUTE IMMEDIATE 'TRUNCATE TABLE '||i_tgt;
+      xl.begin_action('Truncating table '||p_tgt);
+      EXECUTE IMMEDIATE 'TRUNCATE TABLE '||p_tgt;
       l_operation := 'INSERT';
       xl.end_action;
  
     ELSIF l_operation = 'EQUALIZE' THEN
-      xl.begin_action('Deleting extra data from '||i_tgt);
-        l_cmd := 'DELETE FROM '||i_tgt||'
+      xl.begin_action('Deleting extra data from '||p_tgt);
+        l_cmd := 'DELETE FROM '||p_tgt||'
         WHERE ('||l_pk_cols||') NOT IN
         (
           SELECT '||l_pk_cols||'
-          FROM '||l_src_tname||' '||i_whr||'
+          FROM '||l_src_tname||' '||p_whr||'
         )';
         
         xl.begin_action('Executing command', l_cmd);
@@ -354,11 +354,11 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       xl.end_action;
     END IF;
    
-    IF l_operation = 'INSERT' AND i_commit_at > 0 THEN -- incremental insert with commit afrer each portion
+    IF l_operation = 'INSERT' AND p_commit_at > 0 THEN -- incremental insert with commit afrer each portion
       l_cmd := '
       DECLARE
         CURSOR cur IS
-        SELECT '||l_hint2||' '||REPLACE(LOWER(l_ins_cols), 'q.')||' FROM '||l_src_tname||' q '||i_whr||';
+        SELECT '||l_hint2||' '||REPLACE(LOWER(l_ins_cols), 'q.')||' FROM '||l_src_tname||' q '||p_whr||';
          
         TYPE buffer_type IS TABLE OF cur%ROWTYPE;
          
@@ -373,7 +373,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
           cnt := bfr.COUNT;
  
           FORALL i IN 1..cnt
-          INSERT INTO '||i_tgt||'('||REPLACE(LOWER(l_ins_cols), 'q.')||')
+          INSERT INTO '||p_tgt||'('||REPLACE(LOWER(l_ins_cols), 'q.')||')
           VALUES('||REPLACE(LOWER(l_ins_cols), 'q.', 'bfr(i).')||')'||
           CASE WHEN l_err_tname IS NOT NULL THEN '
           LOG ERRORS INTO '||l_err_schema||'.'||l_err_tname||' (:tag) REJECT LIMIT UNLIMITED' END||';
@@ -394,54 +394,57 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       l_act := 'Inserting rows by portions';
       xl.begin_action(l_act, l_cmd);
         IF l_err_tname IS NOT NULL THEN
-          EXECUTE IMMEDIATE l_cmd USING IN OUT o_add_cnt, i_commit_at, l_tag, l_act;
+          EXECUTE IMMEDIATE l_cmd USING IN OUT p_add_cnt, p_commit_at, l_tag, l_act;
         ELSE
-          EXECUTE IMMEDIATE l_cmd USING IN OUT o_add_cnt, i_commit_at, l_act;
+          EXECUTE IMMEDIATE l_cmd USING IN OUT p_add_cnt, p_commit_at, l_act;
         END IF;
         l_cmd := NULL;
-      xl.end_action('Totally inserted: '||o_add_cnt||' rows');
+      xl.end_action('Totally inserted: '||p_add_cnt||' rows');
  
     ELSE -- "one-shot" load with or without commit
       l_cmd := CASE WHEN l_operation IN ('UPDATE', 'MERGE') THEN '
-      MERGE '||l_hint1||' INTO '||i_tgt||' t USING
+      MERGE '||l_hint1||' INTO '||p_tgt||' t USING
       (
         SELECT '||l_hint2||' *
-        FROM '||NVL(l_view_name, i_src)||' '||i_whr||'
+        FROM '||NVL(l_view_name, p_src)||' '||p_whr||'
       ) q
       ON ('||l_on_list||')'||
       CASE WHEN l_upd_cols IS NOT NULL THEN '
-      WHEN MATCHED THEN UPDATE SET '||l_upd_cols
+      WHEN MATCHED THEN UPDATE SET '||l_upd_cols||
+      CASE WHEN p_changes_only IN ('Y', 'y') THEN '
+      WHERE '||REPLACE(REGEXP_REPLACE(l_upd_cols, '(t\.[^=]+=q\.[^=,]+)', 'LNNVL(\1)', 1, 0), ',', ' OR ') 
+      END 
       END ||
       CASE WHEN l_operation = 'MERGE' THEN '
       WHEN NOT MATCHED THEN INSERT ('||REPLACE(l_ins_cols, 'q.')||') VALUES ('||l_ins_cols||')' END
       ELSE '
       INSERT '||l_hint1||'
-      INTO '||i_tgt||'('||REPLACE(l_ins_cols, 'q.')||')
-      SELECT '||l_hint2||' '||l_ins_cols||' FROM '||l_src_tname||' q '||i_whr
+      INTO '||p_tgt||'('||REPLACE(l_ins_cols, 'q.')||')
+      SELECT '||l_hint2||' '||l_ins_cols||' FROM '||l_src_tname||' q '||p_whr
       END || CASE WHEN l_err_tname IS NOT NULL THEN '
       LOG ERRORS INTO '||l_err_schema||'.'||l_err_tname||' (:tag) REJECT LIMIT UNLIMITED' END;
       
       xl.begin_action('Executing command', l_cmd);
         IF l_err_tname IS NOT NULL THEN
           EXECUTE IMMEDIATE l_cmd USING l_tag;
-          o_add_cnt := SQL%ROWCOUNT;
+          p_add_cnt := SQL%ROWCOUNT;
         ELSE
           EXECUTE IMMEDIATE l_cmd;
-          o_add_cnt := SQL%ROWCOUNT;
+          p_add_cnt := SQL%ROWCOUNT;
         END IF;
         l_cmd := NULL;
       xl.end_action;
       
-      IF i_commit_at <> 0 THEN
+      IF p_commit_at <> 0 THEN
         COMMIT;
       END IF;
     END IF;
     
     IF l_err_tname IS NOT NULL THEN
       EXECUTE IMMEDIATE 'SELECT COUNT(1) FROM '||l_err_schema||'.'||l_err_tname||' WHERE ora_err_tag$ = :tag AND entry_ts >= :ts'
-      INTO o_err_cnt USING l_tag, l_ts;
+      INTO p_err_cnt USING l_tag, l_ts;
     ELSE
-      o_err_cnt := 0;
+      p_err_cnt := 0;
     END IF;
     
     IF l_view_name IS NOT NULL THEN
@@ -451,28 +454,29 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       xl.end_action;
     END IF; 
     
-    xl.end_action(o_add_cnt||' rows added; '||o_err_cnt||' errors found');
+    xl.end_action(p_add_cnt||' rows added; '||p_err_cnt||' errors found');
   END;
   
   -- "Silent" version - with no OUT parameters
   PROCEDURE add_data
   (
-    i_operation   IN VARCHAR2, -- 'MERGE', 'APPEND', 'INSERT' 'REPLACE' or 'EQUALIZE'
-    i_tgt         IN VARCHAR2, -- target table to add rows to
-    i_src         IN VARCHAR2, -- source table/view that contains the list of rows to delete or to preserve
-    i_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to i_src
-    i_errtab      IN VARCHAR2 DEFAULT NULL, -- optional error log table,
-    i_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at   IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
-    i_uk_col_list IN VARCHAR2 DEFAULT NULL -- optional UK column list to use in MERGE operation instead of PK columns
+    p_operation   IN VARCHAR2, -- 'MERGE', 'APPEND', 'INSERT' 'REPLACE' or 'EQUALIZE'
+    p_tgt         IN VARCHAR2, -- target table to add rows to
+    p_src         IN VARCHAR2, -- source table/view that contains the list of rows to delete or to preserve
+    p_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to p_src
+    p_errtab      IN VARCHAR2 DEFAULT NULL, -- optional error log table,
+    p_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at   IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
+    p_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
+    p_changes_only  IN VARCHAR2 DEFAULT 'N' -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
   ) IS
     l_add_cnt PLS_INTEGER;
     l_err_cnt PLS_INTEGER;
   BEGIN
     add_data
     (
-      i_operation, i_tgt, i_src, i_whr, i_errtab, i_hint, i_commit_at,
-      i_uk_col_list, l_add_cnt, l_err_cnt
+      p_operation, p_tgt, p_src, p_whr, p_errtab, p_hint, p_commit_at,
+      p_uk_col_list, p_changes_only, l_add_cnt, l_err_cnt
     );
   END;
  
@@ -483,68 +487,68 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
   -- or by the given list of unique columns (I_UK_COL_LIST).
   PROCEDURE delete_data
   (
-    i_tgt         IN VARCHAR2, -- target table to delete rows from
-    i_src         IN VARCHAR2, -- list of rows to be deleted
-    i_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to i_src
-    i_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at   IN PLS_INTEGER DEFAULT 0,
-    i_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
-    i_not_in      IN VARCHAR2 DEFAULT 'N', -- if "Y' then the condition is "NOT IN"
-    o_del_cnt     IN OUT PLS_INTEGER -- number of deleted rows
+    p_tgt         IN VARCHAR2, -- target table to delete rows from
+    p_src         IN VARCHAR2, -- list of rows to be deleted
+    p_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to p_src
+    p_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at   IN PLS_INTEGER DEFAULT 0,
+    p_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
+    p_not_in      IN VARCHAR2 DEFAULT 'N', -- if "Y' then the condition is "NOT IN"
+    p_del_cnt     IN OUT PLS_INTEGER -- number of deleted rows
   ) IS
     l_pk_cols     VARCHAR2(2000);
     l_hint        VARCHAR2(500);
     l_cmd         VARCHAR2(4000);
    
   BEGIN
-    xl.begin_action('Deleting data from '||i_tgt);
+    xl.begin_action('Deleting data from '||p_tgt);
    
-    IF i_uk_col_list IS NOT NULL THEN
-      l_pk_cols := i_uk_col_list;
+    IF p_uk_col_list IS NOT NULL THEN
+      l_pk_cols := p_uk_col_list;
      
     ELSE
-      l_pk_cols := get_key_col_list(i_tgt);
+      l_pk_cols := get_key_col_list(p_tgt);
  
       IF l_pk_cols IS NULL THEN
-        Raise_Application_Error(-20000,'No Pimary Key specified for '||i_tgt);
+        Raise_Application_Error(-20000,'No Pimary Key specified for '||p_tgt);
       END IF;
     END IF;
    
-    IF i_hint IS NOT NULL THEN
-      l_hint := '/*+ '||i_hint||' */';
+    IF p_hint IS NOT NULL THEN
+      l_hint := '/*+ '||p_hint||' */';
     END IF;
  
     l_cmd := '
-    DELETE FROM '||i_tgt||' WHERE ('||REPLACE(l_pk_cols, 'q.')||') '|| CASE i_not_in WHEN 'Y' THEN 'NOT ' END||'IN
+    DELETE FROM '||p_tgt||' WHERE ('||REPLACE(l_pk_cols, 'q.')||') '|| CASE p_not_in WHEN 'Y' THEN 'NOT ' END||'IN
     (
-      SELECT '||l_hint||' '||l_pk_cols||' FROM '||i_src||' q '||i_whr|| '
+      SELECT '||l_hint||' '||l_pk_cols||' FROM '||p_src||' q '||p_whr|| '
     )';
     xl.begin_action('Executing command', l_cmd);
     EXECUTE IMMEDIATE l_cmd;
-    o_del_cnt := SQL%ROWCOUNT;
+    p_del_cnt := SQL%ROWCOUNT;
     xl.end_action;
    
-    IF i_commit_at <> 0 THEN
+    IF p_commit_at <> 0 THEN
       COMMIT;
     END IF;
     
-    xl.end_action(o_del_cnt||' rows deleted');
+    xl.end_action(p_del_cnt||' rows deleted');
   END;
   
   -- "Silent" version - i.e. with no OUT parameter
   PROCEDURE delete_data
   (
-    i_tgt         IN VARCHAR2, -- target table to delete rows from
-    i_src         IN VARCHAR2, -- source table/view that contains the list of rows to delete or to preserve
-    i_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to I_SRC
-    i_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at   IN PLS_INTEGER DEFAULT 0,
-    i_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
-    i_not_in      IN VARCHAR2 DEFAULT 'N'
+    p_tgt         IN VARCHAR2, -- target table to delete rows from
+    p_src         IN VARCHAR2, -- source table/view that contains the list of rows to delete or to preserve
+    p_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to I_SRC
+    p_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at   IN PLS_INTEGER DEFAULT 0,
+    p_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
+    p_not_in      IN VARCHAR2 DEFAULT 'N'
   ) IS
     l_del_cnt PLS_INTEGER;
   BEGIN
-    delete_data(i_tgt, i_src, i_whr, i_hint, i_commit_at, i_uk_col_list, i_not_in, l_del_cnt);
+    delete_data(p_tgt, p_src, p_whr, p_hint, p_commit_at, p_uk_col_list, p_not_in, l_del_cnt);
   END;
 END;
 /

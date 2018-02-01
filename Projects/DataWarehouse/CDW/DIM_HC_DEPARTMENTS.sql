@@ -28,7 +28,7 @@ CREATE TABLE dim_hc_departments
   specialty_code  CHAR(3 BYTE),
   specialty       VARCHAR2(64 BYTE),
   service         VARCHAR2(64 BYTE),
-  service_type    VARCHAR2(3 BYTE),
+  service_type    VARCHAR2(10 BYTE),
   source          VARCHAR2(100 BYTE),
   load_dt         DATE DEFAULT SYSDATE NOT NULL,
   loaded_by       VARCHAR2(30 BYTE) DEFAULT SYS_CONTEXT('USERENV', 'OS_USER'),

@@ -7,6 +7,7 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
 
   History of changes (newest to oldest):
   ------------------------------------------------------------------------------
+  01-FEB-2018, OK: added parameter P_CHANGES_ONLY to ADD_DATA;
   10-Nov-2015, OK: new version
 */
 
@@ -15,28 +16,28 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
   -- schema, table/view name, DB link
   PROCEDURE resolve_name
   (
-    i_name    IN  VARCHAR2,
-    o_schema  OUT VARCHAR2,
-    o_table   OUT VARCHAR2,
-    o_db_link OUT VARCHAR2
+    p_name    IN  VARCHAR2,
+    p_schema  OUT VARCHAR2,
+    p_table   OUT VARCHAR2,
+    p_db_link OUT VARCHAR2
   );
  
   -- Function GET_COL_LIST returns a comma-separated list of all the table column names.
-  FUNCTION get_col_list(i_table IN VARCHAR2) RETURN VARCHAR2;
+  FUNCTION get_col_list(p_table IN VARCHAR2) RETURN VARCHAR2;
  
   -- Function GET_KEY_COL_LIST returns a comma-separated list of the table key column names.
   -- By default, describes the table PK.
   -- Optionally, can describe the given UK,
   FUNCTION get_key_col_list
   (
-    i_table IN VARCHAR2,
-    i_key   IN VARCHAR2 DEFAULT NULL -- optional name of the UK to be described
+    p_table IN VARCHAR2,
+    p_key   IN VARCHAR2 DEFAULT NULL -- optional name of the UK to be described
   ) RETURN VARCHAR2;
 
  
   -- Function GET_COLUMN_INFO returns a table-like structure with descriptions of all the table columns.
   -- See definition of the type RESULTSSTAGING.OBJ_COLUMN_INFO.
-  FUNCTION get_column_info(i_table IN VARCHAR2) RETURN tab_column_info PIPELINED;
+  FUNCTION get_column_info(p_table IN VARCHAR2) RETURN tab_column_info PIPELINED;
 
 
   -- Procedure ADD_DATA selects data from the specified source table or view (I_SRC)
@@ -48,30 +49,32 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
   -- if at least one source row cannot be placed in the target table.
   PROCEDURE add_data
   (
-    i_operation   IN VARCHAR2, -- 'INSERT', 'UPDATE', 'MERGE', 'APPEND', 'REPLACE' or 'EQUALIZE'
-    i_tgt         IN VARCHAR2, -- target table to add rows to
-    i_src         IN VARCHAR2, -- source table or view
-    i_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to i_src
-    i_errtab      IN VARCHAR2 DEFAULT NULL, -- optional error log table,
-    i_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at   IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
-    i_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
-    o_add_cnt     IN OUT PLS_INTEGER, -- number of added/changed rows
-    o_err_cnt     IN OUT PLS_INTEGER  -- number of errors
+    p_operation     IN VARCHAR2, -- 'INSERT', 'UPDATE', 'MERGE', 'APPEND', 'REPLACE' or 'EQUALIZE'
+    p_tgt           IN VARCHAR2, -- target table to add rows to
+    p_src           IN VARCHAR2, -- source table or view
+    p_whr           IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to p_src
+    p_errtab        IN VARCHAR2 DEFAULT NULL, -- optional error log table,
+    p_hint          IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
+    p_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
+    p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_add_cnt       IN OUT PLS_INTEGER, -- number of added/changed rows
+    p_err_cnt       IN OUT PLS_INTEGER  -- number of errors
   );
  
 
   -- "Silent" version of the previous procedure - i.e. with no OUT parameters
   PROCEDURE add_data
   (
-    i_operation   IN VARCHAR2, -- 'MERGE', 'APPEND', 'INSERT' 'REPLACE' or 'EQUALIZE'
-    i_tgt         IN VARCHAR2, -- target table to add rows to
-    i_src         IN VARCHAR2, -- source table or view
-    i_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to i_src
-    i_errtab      IN VARCHAR2 DEFAULT NULL, -- optional error log table
-    i_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at   IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
-    i_uk_col_list IN VARCHAR2 DEFAULT NULL -- optional UK column list to use in MERGE operation instead of PK columns
+    p_operation     IN VARCHAR2, -- 'MERGE', 'APPEND', 'INSERT' 'REPLACE' or 'EQUALIZE'
+    p_tgt           IN VARCHAR2, -- target table to add rows to
+    p_src           IN VARCHAR2, -- source table or view
+    p_whr           IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to p_src
+    p_errtab        IN VARCHAR2 DEFAULT NULL, -- optional error log table
+    p_hint          IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
+    p_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
+    p_changes_only  IN VARCHAR2 DEFAULT 'N' -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
   );
 
 
@@ -82,26 +85,26 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
   -- or by the given list of unique columns (I_UK_COL_LIST).
   PROCEDURE delete_data
   (
-    i_tgt         IN VARCHAR2, -- target table to delete rows from
-    i_src         IN VARCHAR2, -- list of rows to be deleted
-    i_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to i_src
-    i_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at   IN PLS_INTEGER DEFAULT 0,
-    i_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
-    i_not_in      IN VARCHAR2 DEFAULT 'N',
-    o_del_cnt     IN OUT PLS_INTEGER -- number of deleted rows
+    p_tgt         IN VARCHAR2, -- target table to delete rows from
+    p_src         IN VARCHAR2, -- list of rows to be deleted
+    p_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to p_src
+    p_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at   IN PLS_INTEGER DEFAULT 0,
+    p_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
+    p_not_in      IN VARCHAR2 DEFAULT 'N',
+    p_del_cnt     IN OUT PLS_INTEGER -- number of deleted rows
   );
 
   -- "Silent" version - i.e. with no OUT parameter
   PROCEDURE delete_data
   (
-    i_tgt         IN VARCHAR2, -- target table to delete rows from
-    i_src         IN VARCHAR2, -- list of rows to be deleted
-    i_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to i_src
-    i_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
-    i_commit_at   IN PLS_INTEGER DEFAULT 0,
-    i_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
-    i_not_in      IN VARCHAR2 DEFAULT 'N'
+    p_tgt         IN VARCHAR2, -- target table to delete rows from
+    p_src         IN VARCHAR2, -- list of rows to be deleted
+    p_whr         IN VARCHAR2 DEFAULT NULL, -- optional WHERE condition to apply to p_src
+    p_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
+    p_commit_at   IN PLS_INTEGER DEFAULT 0,
+    p_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use instead of PK columns
+    p_not_in      IN VARCHAR2 DEFAULT 'N'
   );
 END;
 /
