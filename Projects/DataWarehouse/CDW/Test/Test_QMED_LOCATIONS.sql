@@ -23,7 +23,6 @@ with
     select
       v.network, nvl(l.lvl, 0) lvl,
       count(distinct v.visit_id) visit_cnt,
-      count(distinct vl.visit_id) vloc_cnt,
       count(distinct l.location_id) loc_cnt,
       count(distinct decode(l.bed_flag, 1, l.location_id)) bed_cnt
     from visit v
@@ -31,13 +30,8 @@ with
     left join loc l on l.network = vl.network and l.location_id = vl.location_id
     group by v.network, l.lvl
   )
---select * from loc where lvl = 3 and bed_flag = 0 or lvl = 2 and bed_flag = 1;
+select * from loc where lvl=1;
 select /*+ parallel(16)*/ *
---from loc_stat pivot (max(cnt) cnt, max(bed_cnt) bed_cnt for lvl in (1,2,3))
-from vloc_stat pivot(sum(visit_cnt) visits, sum(vloc_cnt) visits_with_loc, sum(loc_cnt) loc_cnt, sum(bed_cnt) bed_cnt for lvl in (0,1,2,3)) 
+from vloc_stat pivot(sum(visit_cnt) visits, sum(loc_cnt) loc_cnt, sum(bed_cnt) bed_cnt for lvl in (0,1,2,3)) 
 --from loc_stat pivot (max(cnt) cnt, max(bed_cnt) bed_cnt for lvl in (1,2,3))
 order by network;
-
-select count(1) -- 115,606,481
-from visit;
-

@@ -1,6 +1,6 @@
-exec dbm.drop_tables('DIM_MEDICAL_VENUES');
+exec dbm.drop_tables('DIM_HC_VENUES');
 
-CREATE TABLE dim_medical_venues
+CREATE TABLE dim_hc_venues
 (
   facility_key        NUMBER(10) NOT NULL,
   medical_venue_num   NUMBER(3) NOT NULL,

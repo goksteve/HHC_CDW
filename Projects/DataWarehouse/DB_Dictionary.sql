@@ -1,4 +1,4 @@
-alter session set current_schema = ud_master;
+alter session set current_schema = cdw;
 
 select t.owner, t.table_name, t.num_rows, g.col_list
 from
@@ -9,10 +9,10 @@ from
     count(1) cnt
   from all_tab_columns
   where 1=1
-  and owner in ('UD_MASTER','HHC_CUSTOM','CDW'/*,'PT005'*/)
---  and table_name = 'EMP_FACILITY_ADDL_ADDR'
+  and owner in (/*'EPIC_CLARITY','UD_MASTER','HHC_CUSTOM',*/'CDW'/*,'PT005'*/)
+--  and table_name = 'PERFORMED_BY'
 --  and column_name like 'FIN%CLASS%'
-  and column_name in ('DEPARTMENT_ID','EMP_PROVIDER_ID')
+  and column_name in ('FACILITY_KEY')
   group by owner, table_name
   --having count(1) > 1
 ) g

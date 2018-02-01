@@ -26,3 +26,16 @@ from
   from performed_by
   group by network, visit_id, event_id
 );
+
+select
+  pb.network, mf.facility_id main_facility_id, mf.name main_facility,
+  pf.facility_id performed_in_facility_id, pf.name performed_in_facility,
+  otf.other_facility_id, otf.name other_facility,
+  count(1) cnt
+from performed_by pb
+join proc_event pe on pe.network = pb.network and pe.visit_id = pb.visit_id and pe.event_id = pb.event_id
+join facility mf on mf.network = pe.network and mf.facility_id = pe.facility_id
+left join facility pf on pf.network = pb.network and pf.facility_id = pb.facility_id
+left join other_facility otf on otf.network = pb.network and otf.other_facility_id = pb.other_facility_id
+group by pb.network, mf.facility_id, mf.name, pf.facility_id, pf.name, otf.other_facility_id, otf.name
+order by 1, 2, 4, 6; 

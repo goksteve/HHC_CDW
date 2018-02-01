@@ -47,7 +47,7 @@ WITH
   ),
   payers AS
   (
-    SELECT
+    SELECT --+ materialize
       v.network, v.visit_id,
       pm.payer_group, pm.payer_name,
       ROW_NUMBER() OVER

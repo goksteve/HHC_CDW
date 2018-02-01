@@ -12,7 +12,7 @@ SELECT
   visit_number,
   admission_dt,
   discharge_dt,
-  heart_failure_diagnoses,
+  CASE WHEN heart_failure_diagnoses LIKE '%--%' THEN '"'||heart_failure_diagnoses||'"' ELSE heart_failure_diagnoses END heart_failure_diagnoses,
   fin_class,
   payer_type,
   payer_name,
