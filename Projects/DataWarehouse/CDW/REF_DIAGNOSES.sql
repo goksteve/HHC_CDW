@@ -1,12 +1,10 @@
-ALTER SESSION SET NLS_LENGTH_SEMANTICS = 'BYTE';
-
 exec dbm.drop_tables('REF_DIAGNOSES');
 
 CREATE TABLE ref_diagnoses
 (
-  coding_scheme   VARCHAR2(10),
-  code            VARCHAR2(100),
-  description     VARCHAR2(2000),
+  coding_scheme   VARCHAR2(10 BYTE),
+  code            VARCHAR2(100 BYTE),
+  description     VARCHAR2(2000 BYTE),
   CONSTRAINT ref_diagnoses_pk PRIMARY KEY(coding_scheme, code)
 ) ORGANIZATION INDEX COMPRESS OVERFLOW
 PARTITION BY LIST(coding_scheme)

@@ -171,6 +171,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     p_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
     p_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
     p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_delete_cnd    IN VARCHAR2 DEFAULT NULL, -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy these condition 
     p_add_cnt       IN OUT PLS_INTEGER, -- number of added/changed rows
     p_err_cnt       IN OUT PLS_INTEGER  -- number of errors
   ) IS
@@ -339,7 +340,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
  
     ELSIF l_operation = 'EQUALIZE' THEN
       xl.begin_action('Deleting extra data from '||p_tgt);
-        l_cmd := 'DELETE FROM '||p_tgt||'
+        l_cmd := 'DELETE '||l_hint1||' FROM '||p_tgt||'
         WHERE ('||l_pk_cols||') NOT IN
         (
           SELECT '||l_pk_cols||'
@@ -402,27 +403,34 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       xl.end_action('Totally inserted: '||p_add_cnt||' rows');
  
     ELSE -- "one-shot" load with or without commit
-      l_cmd := CASE WHEN l_operation IN ('UPDATE', 'MERGE') THEN '
+      l_cmd :=
+      CASE WHEN l_operation IN ('UPDATE', 'MERGE') THEN '
       MERGE '||l_hint1||' INTO '||p_tgt||' t USING
       (
         SELECT '||l_hint2||' *
         FROM '||NVL(l_view_name, p_src)||' '||p_whr||'
       ) q
       ON ('||l_on_list||')'||
-      CASE WHEN l_upd_cols IS NOT NULL THEN '
+        CASE WHEN l_upd_cols IS NOT NULL THEN '
       WHEN MATCHED THEN UPDATE SET '||l_upd_cols||
-      CASE WHEN p_changes_only IN ('Y', 'y') THEN '
-      WHERE '||REPLACE(REGEXP_REPLACE(l_upd_cols, '(t\.[^=]+=q\.[^=,]+)', 'LNNVL(\1)', 1, 0), ',', ' OR ') 
-      END 
-      END ||
-      CASE WHEN l_operation = 'MERGE' THEN '
-      WHEN NOT MATCHED THEN INSERT ('||REPLACE(l_ins_cols, 'q.')||') VALUES ('||l_ins_cols||')' END
+          CASE WHEN p_changes_only IN ('Y', 'y') THEN '
+      WHERE '||REPLACE(REGEXP_REPLACE(l_upd_cols, '(t\.[^=]+=q\.[^=,]+)', 'LNNVL(\1)', 1, 0), ',', ' OR ')
+          END ||
+          CASE WHEN p_delete_cnd IS NOT NULL THEN '
+      DELETE WHERE '||p_delete_cnd
+          END 
+        END ||
+        CASE WHEN l_operation = 'MERGE' THEN '
+      WHEN NOT MATCHED THEN INSERT ('||REPLACE(l_ins_cols, 'q.')||') VALUES ('||l_ins_cols||')'
+        END
       ELSE '
       INSERT '||l_hint1||'
       INTO '||p_tgt||'('||REPLACE(l_ins_cols, 'q.')||')
       SELECT '||l_hint2||' '||l_ins_cols||' FROM '||l_src_tname||' q '||p_whr
-      END || CASE WHEN l_err_tname IS NOT NULL THEN '
-      LOG ERRORS INTO '||l_err_schema||'.'||l_err_tname||' (:tag) REJECT LIMIT UNLIMITED' END;
+      END ||
+      CASE WHEN l_err_tname IS NOT NULL THEN '
+      LOG ERRORS INTO '||l_err_schema||'.'||l_err_tname||' (:tag) REJECT LIMIT UNLIMITED'
+      END;
       
       xl.begin_action('Executing command', l_cmd);
         IF l_err_tname IS NOT NULL THEN
@@ -468,7 +476,8 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     p_hint        IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
     p_commit_at   IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
     p_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
-    p_changes_only  IN VARCHAR2 DEFAULT 'N' -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_delete_cnd    IN VARCHAR2 DEFAULT NULL -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy thise condition 
   ) IS
     l_add_cnt PLS_INTEGER;
     l_err_cnt PLS_INTEGER;
@@ -476,7 +485,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     add_data
     (
       p_operation, p_tgt, p_src, p_whr, p_errtab, p_hint, p_commit_at,
-      p_uk_col_list, p_changes_only, l_add_cnt, l_err_cnt
+      p_uk_col_list, p_changes_only, p_delete_cnd, l_add_cnt, l_err_cnt
     );
   END;
  

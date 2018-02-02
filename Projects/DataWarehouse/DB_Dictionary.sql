@@ -18,3 +18,9 @@ from
 ) g
 join all_tables t on t.owner = g.owner and t.table_name = g.table_name --and t.num_rows > 10 
 order by col_list, table_name;
+
+select index_name, status from user_indexes where status not in ('VALID', 'N/A')
+union
+select index_name, status from user_ind_partitions where status not in ('USABLE', 'N/A')
+union
+select index_name, status from user_ind_subpartitions where status <> 'USABLE';

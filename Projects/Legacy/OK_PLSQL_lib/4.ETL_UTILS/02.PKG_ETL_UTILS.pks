@@ -7,6 +7,7 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
 
   History of changes (newest to oldest):
   ------------------------------------------------------------------------------
+  02-FEB-2018, OK: added parameter P_DELETE_CND;
   01-FEB-2018, OK: added parameter P_CHANGES_ONLY to ADD_DATA;
   10-Nov-2015, OK: new version
 */
@@ -58,6 +59,7 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
     p_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
     p_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
     p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_delete_cnd    IN VARCHAR2 DEFAULT NULL, -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy these condition 
     p_add_cnt       IN OUT PLS_INTEGER, -- number of added/changed rows
     p_err_cnt       IN OUT PLS_INTEGER  -- number of errors
   );
@@ -74,7 +76,8 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
     p_hint          IN VARCHAR2 DEFAULT NULL, -- optional hint for the source query
     p_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
     p_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
-    p_changes_only  IN VARCHAR2 DEFAULT 'N' -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
+    p_delete_cnd    IN VARCHAR2 DEFAULT NULL -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy these condition 
   );
 
 

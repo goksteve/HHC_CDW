@@ -2,7 +2,7 @@ alter session set current_schema = pt005;
 
 UPDATE dbg_process_logs set result = 'Cancelled', end_time = systimestamp
 where end_time is null
-and proc_id < 121
+and proc_id < 31
 ;
 commit;
 
@@ -31,12 +31,12 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id IN (17)
+where proc_id IN (30)
 order by tstamp;
 
 select proc_id, action, cnt, seconds 
 from dbg_performance_data 
-where proc_id = 168
+where proc_id = 23
 order by seconds desc;
 
 select *
@@ -58,6 +58,4 @@ order by 3 desc;
 select * from err_edd_fact_stats
 where ora_err_tag$ = '118'; 
 
-select t.*, s.*
-from tst_ok1 s
-join tst_ok2 t on t.n = s.n and lnnvl(t.d=s.d);
+drop table tst_ok2 purge;

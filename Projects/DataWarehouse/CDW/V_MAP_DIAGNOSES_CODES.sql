@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_etl_map_diagnoses_codes AS 
+CREATE OR REPLACE VIEW v_map_diagnoses_codes AS 
 SELECT
   -- 18-JAN-2018, OK: created
   DISTINCT icd10_code, icd9_code

@@ -46,19 +46,3 @@ BEGIN
   END IF;
 END;
 /
-
-INSERT INTO dim_hc_departments
-(
-  department_key, network, location_id, facility_key, division, department, zone,
-  is_bed, specialty_code, specialty, service, service_type, source
-)
-SELECT
-  seq_dim_hc_departments_key.NEXTVAL, network, location_id, facility_key, division, department,
-  zone, is_bed, specialty_code, specialty, service, service_type, source
-FROM
-(
-  SELECT * FROM v_dim_hc_departments
-  ORDER BY network, location_id
-);
-
-COMMIT;

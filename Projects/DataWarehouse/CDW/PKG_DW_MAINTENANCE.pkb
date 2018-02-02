@@ -12,10 +12,13 @@ CREATE OR REPLACE PACKAGE BODY pkg_dw_maintenance AS
   BEGIN
     xl.open_log('DWM.REFRESH_DATA', 'Refreshing DW'||CASE WHEN p_table_list IS NOT NULL THEN ': '||p_table_list END, TRUE);
     
+    EXECUTE IMMEDIATE 'ALTER SESSION ENABLE PARALLEL DML';
+    EXECUTE IMMEDIATE 'ALTER SESSION ENABLE PARALLEL DDL';
+    
     OPEN rcur FOR
     'SELECT * FROM cnf_dw_refresh'||
     CASE WHEN p_table_list IS NOT NULL THEN '
-    WHERE tgt IN ('''||REPLACE(UPPER(p_table_list), ',', ''',''')||''')' 
+    WHERE target_table IN ('''||REPLACE(UPPER(p_table_list), ',', ''',''')||''')' 
     END || '
     ORDER BY etl_step_num';
     
@@ -25,12 +28,13 @@ CREATE OR REPLACE PACKAGE BODY pkg_dw_maintenance AS
       
       etl.add_data
       (
-        p_operation => rec.opr,
-        p_tgt => rec.tgt,
-        p_src => rec.src,
-        p_whr => rec.whr,
+        p_operation => rec.operation,
+        p_tgt => rec.target_table,
+        p_src => rec.data_source,
+        p_whr => rec.where_clause,
         p_uk_col_list => rec.uk_col_list,
         p_changes_only => rec.changes_only,
+        p_delete_cnd => rec.delete_condition,
         p_commit_at => -1
       );
     END LOOP;

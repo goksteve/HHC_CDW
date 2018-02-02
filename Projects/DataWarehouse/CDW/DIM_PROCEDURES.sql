@@ -32,25 +32,12 @@ CREATE TABLE dim_procedures
 GRANT SELECT ON dim_procedures TO PUBLIC;
 
 CREATE SEQUENCE seq_dim_procedure_key;
-  
-INSERT INTO dim_procedures
-(
-  proc_key, proc_name, proc_type, kardex_group, is_primary, is_nursing, 
-  source, network, src_proc_id 
-)
-SELECT seq_dim_procedure_key.NEXTVAL, q.*
-FROM
-(
-  SELECT
-    p.name AS proc_name, pt.proc_type_name AS proc_type, kg.name AS kardex_group,
-    DECODE(primary_proc_flag, 'T', 'Y', 'F', 'N') is_primary,
-    DECODE(nursing_proc_flag, 'T', 'Y', 'F', 'N') is_nursing, 
-    'UD_MASTER.PROC' AS source, p.network, p.proc_id  
-  FROM proc p
-  LEFT JOIN proc_type pt ON pt.network = p.network AND pt.proc_type_id = p.proc_type_id 
-  LEFT JOIN kardex_group kg ON kg.network = p.network AND kg.kardex_group_id = p.kardex_group_id
-  WHERE p.name IS NOT NULL 
-  ORDER BY p.network, p.proc_id
-) q;
 
-COMMIT;
+CREATE OR REPLACE TRIGGER bir_dim_procedures
+BEFORE INSERT ON dim_procedures FOR EACH ROW
+BEGIN
+  IF :new.proc_key IS NULL THEN
+    :new.proc_key := seq_dim_procedure_key.NEXTVAL;
+  END IF;
+END;
+/
