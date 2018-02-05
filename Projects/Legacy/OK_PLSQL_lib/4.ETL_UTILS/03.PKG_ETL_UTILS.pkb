@@ -414,7 +414,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
         CASE WHEN l_upd_cols IS NOT NULL THEN '
       WHEN MATCHED THEN UPDATE SET '||l_upd_cols||
           CASE WHEN p_changes_only IN ('Y', 'y') THEN '
-      WHERE '||REPLACE(REGEXP_REPLACE(l_upd_cols, '(t\.[^=]+=q\.[^=,]+)', 'LNNVL(\1)', 1, 0), ',', ' OR ')
+      WHERE '||REPLACE(REGEXP_REPLACE(l_upd_cols, '(t\.[^=]+=q\.[^,]+)', 'LNNVL(\1)', 1, 0), ',', ' OR ')
           END ||
           CASE WHEN p_delete_cnd IS NOT NULL THEN '
       DELETE WHERE '||p_delete_cnd

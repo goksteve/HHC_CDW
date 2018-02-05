@@ -2,7 +2,7 @@ alter session set current_schema = pt005;
 
 UPDATE dbg_process_logs set result = 'Cancelled', end_time = systimestamp
 where end_time is null
-and proc_id < 31
+and proc_id < 39
 ;
 commit;
 
@@ -31,12 +31,12 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id IN (30)
+where proc_id IN (42)
 order by tstamp;
 
 select proc_id, action, cnt, seconds 
 from dbg_performance_data 
-where proc_id = 23
+where proc_id = 35
 order by seconds desc;
 
 select *
@@ -59,3 +59,25 @@ select * from err_edd_fact_stats
 where ora_err_tag$ = '118'; 
 
 drop table tst_ok2 purge;
+
+DELETE FROM REF_DIAGNOSES
+WHERE (CODING_SCHEME,CODE) NOT IN
+(
+  SELECT CODING_SCHEME,CODE
+  FROM V_REF_DIAGNOSES 
+);
+
+select coding_scheme, code from ref_diagnoses as of timestamp systimestamp - interval '10' minute
+minus
+select coding_scheme, code from ref_diagnoses;
+
+select --+ parallel(32) 
+* from problem_cmv as of timestamp systimestamp - interval '2' day
+where coding_scheme_id = 10 and code in ('C40.82','V33.0xxD');
+
+DELETE /*+ PARALLEL(16)*/ FROM REF_DIAGNOSES
+WHERE (CODING_SCHEME,CODE) NOT IN
+(
+  SELECT CODING_SCHEME,CODE
+  FROM V_REF_DIAGNOSES 
+);
