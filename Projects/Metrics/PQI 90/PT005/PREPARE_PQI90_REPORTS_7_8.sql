@@ -27,17 +27,17 @@ BEGIN
   
   etl.add_data
   (
-    i_operation => 'INSERT /*+parallel(16)*/',
-    i_tgt => 'DSRIP_REPORT_PQI90_78',
-    i_src => 'V_DSRIP_REPORT_PQI90_78',
-    i_commit_at => -1
+    p_operation => 'INSERT /*+parallel(16)*/',
+    p_tgt => 'DSRIP_REPORT_PQI90_78',
+    p_src => 'V_DSRIP_REPORT_PQI90_78',
+    p_commit_at => -1
   );
   
   etl.add_data
   (
-    i_operation => 'INSERT',
-    i_tgt => 'DSRIP_REPORT_RESULTS',
-    i_src => 'SELECT 
+    p_operation => 'INSERT',
+    p_tgt => 'DSRIP_REPORT_RESULTS',
+    p_src => 'SELECT 
         ''PQI90-78'' report_cd, 
         report_period_start_dt AS period_start_dt,
         DECODE(GROUPING(network), 1, ''ALL networks'', network) network,
@@ -48,7 +48,7 @@ BEGIN
       FROM dsrip_report_pqi90_78 r
       WHERE r.report_period_start_dt = '''||d_report_mon||'''
       GROUP BY GROUPING SETS((report_period_start_dt, network, Facility),(report_period_start_dt))',
-    i_commit_at => -1
+    p_commit_at => -1
   );
   
   xl.close_log('Successfully completed');

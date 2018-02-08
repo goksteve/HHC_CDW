@@ -6,7 +6,6 @@ set feedback on
 INSERT --+ parallel(8) 
 INTO dsrip_tr016_a1c_glucose_rslt
 SELECT
-  network,
   facility_id,
   patient_id,
   visit_id,
@@ -24,7 +23,6 @@ SELECT
 FROM
 (
   SELECT  --+ ordered full(r) use_hash(e) use_hash(v)
-    DISTINCT
     v.facility_id,
     v.patient_id,
     v.visit_id,
@@ -39,7 +37,7 @@ FROM
     r.data_element_id,
     rf.name data_element_name,
     r.value result_value,
-    ROW_NUMBER() OVER(PARTITION BY patient_id ORDER BY e.date_time DESC) rnum
+    ROW_NUMBER() OVER(PARTITION BY v.patient_id ORDER BY e.event_id DESC, r.data_element_id) rnum
   FROM
   (
     SELECT

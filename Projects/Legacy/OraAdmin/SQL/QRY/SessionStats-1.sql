@@ -14,15 +14,19 @@ from
   v$sesstat st,
 --  v$mystat st,
   v$statname sn
-where s.status = 'ACTIVE' 
+where 1=1
+and s.osuser = 'khaykino'
+and s.sid = 1020
+--and s.status = 'ACTIVE' 
 and st.sid = s.sid and st.value> 0 
 and sn.statistic# = st.statistic#
-and sn.name IN
+and sn.name like '%undo%'
+/*and sn.name IN
 (
   'dummy'
-  ,'CPU used by this session' 
+  ,'CPU used by this session'
+  ,'DBWR undo block writes' 
 --  ,'workarea memory allocated'
 --  ,'number of auto extends on undo tablespace'
-)
---and s.osuser = 'okhaykin'
-order by sn.name, st.value desc
+)*/
+order by sn.name, st.value desc;

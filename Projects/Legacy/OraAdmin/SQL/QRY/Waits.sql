@@ -28,7 +28,7 @@ select * from table(v2_array(
 
 commit;
 
-create or replace view vw_system_waits as
+--create or replace view vw_system_waits as
 select
   event, total_waits, round((time_waited/100),2) time_wait_sec,
   total_timeouts, round((average_wait/100),2) average_wait_sec
@@ -46,7 +46,7 @@ select
 from sys.v_$session s
 join sys.v_$session_event se on se.sid = s.sid
 left outer join sys.v_$bgprocess bg on bg.paddr = s.paddr
-where se.event not in (select event from adm_harmless_waits)
+--where se.event not in (select event from adm_harmless_waits)
 and se.event not like 'DFS%' and se.event not like 'KXFX%';
 
 select

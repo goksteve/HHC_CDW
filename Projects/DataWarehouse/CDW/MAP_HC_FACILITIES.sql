@@ -5,10 +5,10 @@ CREATE TABLE map_hc_facilities
   source              VARCHAR2(30) NOT NULL,
   network             CHAR(3 BYTE) NOT NULL,
   src_facility_id     NUMBER(2) NOT NULL,
-  facility_key        NUMBER(10) CONSTRAINT dim_med_facilities_pk PRIMARY KEY,
+  facility_key        NUMBER(12) NOT NULL,
   load_dt             DATE DEFAULT SYSDATE NOT NULL,
   loaded_by           VARCHAR2(30 BYTE) DEFAULT SYS_CONTEXT('USERENV','OS_USER'),
-  CONSTRAINT pk_map_hc_facilities UNIQUE(source, network, src_facility_id),
+  CONSTRAINT Pk_map_hc_facilities PRIMARY KEY(source, network, src_facility_id),
   CONSTRAINT fk_map_hc_facility_dim FOREIGN KEY(facility_key) REFERENCES dim_hc_facilities
 ) COMPRESS BASIC;
 

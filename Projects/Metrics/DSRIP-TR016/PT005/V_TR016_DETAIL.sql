@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW v_tr016_detail AS
 SELECT
+ -- 7-Feb-2018, OK: added columns BH_DIAG_CODE and BH_DIAGNOSIS
   report_period_start_dt,
   patient_gid,
   network,
@@ -15,6 +16,8 @@ SELECT
   city,
   state,
   zip_code,
+  bh_diag_code,
+  bh_diagnosis,
   medication,
   prim_care_provider,
   last_pcp_visit_dt,

@@ -7,8 +7,8 @@ WITH sess AS
     DECODE(ownerid, 2147483644, NULL, MOD(ownerid, 65536)) parallel_sess_no 
   FROM v$session s, v$process p
   WHERE s.username IS NOT NULL AND p.addr = s.paddr
-  and s.username = 'KHAYKINO'
-  and s.program = 'sqlplus.EXE'
+--  and s.username = 'KHAYKINO' and s.program = 'sqlplus.EXE'
+  and s.osuser = 'khaykino'
 )
 SELECT * FROM sess
 --where spid=24848

@@ -56,18 +56,18 @@ BEGIN
   
   etl.add_data
   (
-    i_operation => 'INSERT /*+PARALLEL(16)*/',
-    i_tgt => 'DSRIP_REPORT_TR016',
-    i_src => 'V_DSRIP_REPORT_TR016',
-    i_whr => 'WHERE rnum = 1',
-    i_commit_at => -1
+    p_operation => 'INSERT /*+PARALLEL(16)*/',
+    p_tgt => 'DSRIP_REPORT_TR016',
+    p_src => 'V_DSRIP_REPORT_TR016',
+    p_whr => 'WHERE rnum = 1',
+    p_commit_at => -1
   );
   
   etl.add_data
   (
-    i_operation => 'INSERT',
-    i_tgt => 'DSRIP_REPORT_RESULTS',
-    i_src => 'SELECT 
+    p_operation => 'INSERT',
+    p_tgt => 'DSRIP_REPORT_RESULTS',
+    p_src => 'SELECT 
         ''DSRIP-TR016'' report_cd, 
         report_period_start_dt AS period_start_dt,
         DECODE(GROUPING(network), 1, ''ALL networks'', network) network,
@@ -77,22 +77,22 @@ BEGIN
       FROM dsrip_report_tr016 r
       WHERE report_period_start_dt = '''||d_report_mon||'''
       GROUP BY GROUPING SETS((report_period_start_dt, network, facility_name),(report_period_start_dt))',
-    i_commit_at => -1
+    p_commit_at => -1
   );
   
   etl.add_data
   (
-    i_operation => 'INSERT',
-    i_tgt => 'DSRIP_REPORT_TR016_EPIC',
-    i_src => 'V_DSRIP_REPORT_TR016_EPIC',
-    i_commit_at => -1
+    p_operation => 'INSERT',
+    p_tgt => 'DSRIP_REPORT_TR016_EPIC',
+    p_src => 'V_DSRIP_REPORT_TR016_EPIC',
+    p_commit_at => -1
   );
   
   etl.add_data
   (
-    i_operation => 'INSERT',
-    i_tgt => 'DSRIP_REPORT_RESULTS',
-    i_src => 'SELECT 
+    p_operation => 'INSERT',
+    p_tgt => 'DSRIP_REPORT_RESULTS',
+    p_src => 'SELECT 
         ''DSRIP-TR016-EPIC'' report_cd, 
         report_period_start_dt AS period_start_dt,
         DECODE(GROUPING(network), 1, ''ALL networks'', network) network,
@@ -102,7 +102,7 @@ BEGIN
       FROM dsrip_report_tr016_epic r
       WHERE report_period_start_dt = '''||d_report_mon||'''
       GROUP BY GROUPING SETS((report_period_start_dt, network, facility_name),(report_period_start_dt))',
-    i_commit_at => -1
+    p_commit_at => -1
   );
   
   xl.close_log('Successfully completed');

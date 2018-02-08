@@ -15,7 +15,7 @@ end;
 
 CREATE TABLE dim_hc_facilities
 (
-  facility_key    NUMBER(10) CONSTRAINT pk_dim_hc_facilities PRIMARY KEY,
+  facility_key    NUMBER(12) CONSTRAINT pk_dim_hc_facilities PRIMARY KEY,
   facility_cd     CHAR(2 BYTE) CONSTRAINT uk_dim_hc_facilities_cd UNIQUE,
   facility_name   VARCHAR2(64 BYTE) NOT NULL CONSTRAINT uk_dim_hc_facilities_nm UNIQUE,
   street_address  VARCHAR2(256 BYTE),

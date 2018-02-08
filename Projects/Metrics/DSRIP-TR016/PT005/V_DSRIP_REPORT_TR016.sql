@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW v_dsrip_report_tr016 AS
 WITH
+  -- 07-Feb-2018, OK: included psychotic diagnoses
   -- 16-Jan-2018, OK: added USE_HASH hints into the main query
   -- 12-Dec-2017, OK: excluded QHN and SBN networks
   report_dates AS
@@ -31,20 +32,35 @@ WITH
     LEFT JOIN ref_drug_descriptions dscr ON dscr.drug_description = pr.drug_description 
     WHERE dnm.drug_type_id IN (33, 34) OR dscr.drug_type_id IN (33, 34) -- Diabetes and Antipsychotic Medications
   ),
-  diabetes_diagnoses AS
+  diagnoses AS
   (
     SELECT --+ materialize parallel(8)
       NVL(TO_CHAR(mdm.eid), pd.network||'-'||pd.patient_id) patient_gid,
-      MIN(pd.onset_date) onset_dt,
-      MAX(pd.stop_date) stop_dt
+      lkp.criterion_id diag_type_id, DECODE(pd.diag_coding_scheme, '5', 'ICD-9', 'ICD-10') coding_scheme,
+      pd.diag_code, pd.diag_description, pd.onset_date onset_dt, pd.stop_date stop_dt
     FROM patient_diag_dimension pd
     JOIN meta_conditions lkp
       ON lkp.qualifier = DECODE(pd.diag_coding_scheme, '5', 'ICD9', 'ICD10')
-     AND lkp.value = pd.diag_code AND lkp.criterion_id = 6 -- DIAGNOSIS:DIABETES
+     AND lkp.value = pd.diag_code AND lkp.criterion_id IN (6, 31, 32) -- 6-DIABETES, 31-SCHIZOPHRENIA, 32-BIPOLAR
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
       ON mdm.network = pd.network AND TO_NUMBER(mdm.patientid) = pd.patient_id AND mdm.epic_flag = 'N'
     WHERE pd.network NOT IN ('QHN','SBN') AND pd.diag_coding_scheme IN (5, 10) AND pd.current_flag = '1' AND pd.stop_date IS NULL
-    GROUP BY NVL(TO_CHAR(mdm.eid), pd.network||'-'||pd.patient_id)
+  ),
+  diabetes_diagnoses AS
+  (
+    SELECT --+ materialize
+      patient_gid, MIN(onset_dt) onset_dt, MAX(stop_dt) stop_dt
+    FROM diagnoses
+    WHERE diag_type_id = 6
+    GROUP BY patient_gid
+  ),
+  psychotic_diagnoses AS
+  (
+    SELECT --+ materialize
+      patient_gid, coding_scheme, diag_code, diag_description,
+      ROW_NUMBER() OVER(PARTITION BY patient_gid ORDER BY onset_dt DESC, coding_scheme DESC, diag_code) rnum  
+    FROM diagnoses
+    WHERE diag_type_id IN (31, 32)
   ),
   diabetes_prescriptions AS
   (
@@ -74,7 +90,7 @@ WITH
       ROW_NUMBER() OVER(PARTITION BY NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id) ORDER BY a1c.result_dt DESC) rnum
     FROM report_dates dt
     JOIN dsrip_tr016_a1c_glucose_rslt a1c
-      ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt -- OK: probably do not need this condition but it does not hurt 
+      ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt -- OK: this condition is not probably needed but it does not hurt to have it
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
       ON mdm.network = a1c.network AND TO_NUMBER(mdm.patientid) = a1c.patient_id AND mdm.epic_flag = 'N'
   ),
@@ -105,6 +121,8 @@ SELECT --+ USE_HASH(f pd pm pr)
   pd.state,
   pd.mailing_code zip_code,
   amed.medication,
+  CASE WHEN psych.coding_scheme IS NOT NULL THEN psych.coding_scheme||': '||psych.diag_code END bh_diag_code,
+  psych.diag_description bh_diagnosis,
   pcp.prim_care_provider,
   pcp.pcp_visit_dt AS last_pcp_visit_dt,
   tst.visit_id,
@@ -121,16 +139,19 @@ SELECT --+ USE_HASH(f pd pm pr)
   tst.data_element_name,
   tst.result_value,
   ROW_NUMBER() OVER(PARTITION BY amed.patient_gid, tst.network, tst.visit_id ORDER BY CASE WHEN pm.payer_group = 'Medicaid' THEN 1 ELSE 2 END, pr.payer_rank) rnum  
-  --pcp, medicaid_ind, plan_id, plan_name, icd_code
 FROM prescriptions amed
 CROSS JOIN report_dates dt
-JOIN pcp_info pcp ON pcp.patient_gid = amed.patient_gid
-LEFT JOIN diabetes_diagnoses diab ON diab.patient_gid = amed.patient_gid
+LEFT JOIN pcp_info pcp ON pcp.patient_gid = amed.patient_gid
+LEFT JOIN diabetes_diagnoses diab ON diab.patient_gid = amed.patient_gid 
+LEFT JOIN psychotic_diagnoses psych ON psych.patient_gid = amed.patient_gid AND psych.rnum = 1
 LEFT JOIN diabetes_prescriptions dmed ON dmed.patient_gid = amed.patient_gid
 LEFT JOIN a1c_glucose_tests tst ON tst.patient_gid = amed.patient_gid AND tst.rnum = 1
 LEFT JOIN patient_dimension pd
-  ON pd.network = NVL(tst.network, amed.network) AND pd.patient_id = NVL(tst.patient_id, amed.patient_id) AND pd.current_flag = 1 
-LEFT JOIN facility_dimension f ON f.network = NVL(tst.network, amed.network) AND f.facility_id = amed.facility_id
+  ON pd.network = NVL(tst.network, amed.network)
+ AND pd.patient_id = NVL(tst.patient_id, amed.patient_id)
+ AND pd.current_flag = 1 
+LEFT JOIN facility_dimension f
+  ON f.network = NVL(tst.network, amed.network) AND f.facility_id = amed.facility_id
 LEFT JOIN dsrip_tr016_payers pr ON pr.network = tst.network AND pr.visit_id = tst.visit_id
 LEFT JOIN pt008.payer_mapping pm ON pm.network = pr.network AND pm.payer_id = pr.payer_id
 WHERE amed.rnum = 1 AND amed.drug_type_id = 34 -- Antipsychotic Medications

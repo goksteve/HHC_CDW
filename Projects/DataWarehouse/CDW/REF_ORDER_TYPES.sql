@@ -1,0 +1,7 @@
+CREATE TABLE ref_order_types
+(
+  ORDER_TYPE_ID  NUMBER(12) CONSTRAINT pk_order_type PRIMARY KEY,
+  NAME           VARCHAR2(50 BYTE)
+) ORGANIZATION INDEX;
+
+GRANT SELECT ON ref_order_types TO PUBLIC;

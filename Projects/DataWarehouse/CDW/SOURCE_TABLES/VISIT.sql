@@ -1,6 +1,6 @@
 CREATE TABLE visit
 (
-  NETWORK                        CHAR(3 BYTE),
+  NETWORK                        CHAR(3 BYTE) NOT NULL,
   VISIT_ID                       NUMBER(12) NOT NULL,
   VISIT_NUMBER                   VARCHAR2(40 BYTE),
   PATIENT_ID                     NUMBER(12),
@@ -39,12 +39,11 @@ CREATE TABLE visit
   UK_PCT_RES_CODE                VARCHAR2(8 BYTE),
   INTER_FACILITY_TO_VISIT_ID     NUMBER(12),
   INTER_FACILITY_FROM_VISIT_ID   NUMBER(12),
-  CID                            NUMBER(14),
-  CONSTRAINT pk_visit PRIMARY KEY(visit_id, network) USING INDEX LOCAL
+  CID                            NUMBER(14)
 )
 COMPRESS BASIC
 PARTITION BY LIST(network)
-SUBPARTITION BY HASH(visit_id)
+SUBPARTITION BY HASH(visit_id) SUBPARTITIONS 16
 (
   PARTITION cbn VALUES('CBN'),
   PARTITION gp1 VALUES('GP1'),
@@ -56,5 +55,13 @@ SUBPARTITION BY HASH(visit_id)
   PARTITION smn VALUES('SMN')
 );
 
+CREATE UNIQUE INDEX pk_visit ON visit(visit_id, network) LOCAL PARALLEL 16;
+ALTER INDEX pk_visit NOPARALLEL;
+
 CREATE INDEX idx_visit_cid ON visit(cid, network) LOCAL PARALLEL 16;
+ALTER INDEX idx_visit_cid NOPARALLEL;
  
+ALTER TABLE visit ADD CONSTRAINT pk_visit PRIMARY KEY(visit_id, network) USING INDEX pk_visit;
+
+
+

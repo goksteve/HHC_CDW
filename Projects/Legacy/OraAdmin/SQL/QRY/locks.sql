@@ -9,6 +9,7 @@ SELECT
   s.username,
   s.machine,
   s.program,
+  s.status,
   o.owner ||'.'|| o.object_name locked_object,
   Decode
   (
