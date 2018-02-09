@@ -29,8 +29,6 @@ SUBPARTITION BY HASH(visit_id) SUBPARTITIONS 16
   PARTITION smn VALUES('SMN')
 );
 
-alter table new_proc_order_def modify ORDER_SPAN_STATE_ID number(30);
-
 INSERT --+ APPEND PARALLEL(16)
 INTO new_proc_order_def
 SELECT network, visit_id, order_span_id, order_span_state_id, order_definition_id, proc_order_nbr, frequency, dosage, prn_24hr_dosage, orig_proc_order_nbr, autz_reqd_flag, order_autz_status_id, autz_approval_nbr, transport_destination

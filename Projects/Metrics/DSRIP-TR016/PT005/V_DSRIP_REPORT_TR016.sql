@@ -12,7 +12,7 @@ WITH
   ),
   prescriptions AS
   (
-    SELECT --+ materialize parallel(8)
+    SELECT --+ materialize
       pr.network,
       pr.facility_id,
       pr.patient_id,
@@ -34,7 +34,7 @@ WITH
   ),
   diagnoses AS
   (
-    SELECT --+ materialize parallel(8)
+    SELECT --+ materialize
       NVL(TO_CHAR(mdm.eid), pd.network||'-'||pd.patient_id) patient_gid,
       lkp.criterion_id diag_type_id, DECODE(pd.diag_coding_scheme, '5', 'ICD-9', 'ICD-10') coding_scheme,
       pd.diag_code, pd.diag_description, pd.onset_date onset_dt, pd.stop_date stop_dt
@@ -43,7 +43,7 @@ WITH
       ON lkp.qualifier = DECODE(pd.diag_coding_scheme, '5', 'ICD9', 'ICD10')
      AND lkp.value = pd.diag_code AND lkp.criterion_id IN (6, 31, 32) -- 6-DIABETES, 31-SCHIZOPHRENIA, 32-BIPOLAR
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
-      ON mdm.network = pd.network AND TO_NUMBER(mdm.patientid) = pd.patient_id AND mdm.epic_flag = 'N'
+      ON mdm.network = pd.network AND mdm.patientid = TO_CHAR(pd.patient_id) AND mdm.epic_flag = 'N'
     WHERE pd.network NOT IN ('QHN','SBN') AND pd.diag_coding_scheme IN (5, 10) AND pd.current_flag = '1' AND pd.stop_date IS NULL
   ),
   diabetes_diagnoses AS
@@ -72,7 +72,7 @@ WITH
   ),
   a1c_glucose_tests AS
   (
-    SELECT --+ materialize
+    SELECT --+ materialize use_hash(mdm)
       NVL(TO_CHAR(mdm.eid), a1c.network||'-'||a1c.patient_id) patient_gid,
       a1c.network,
       a1c.facility_id,
@@ -92,7 +92,7 @@ WITH
     JOIN dsrip_tr016_a1c_glucose_rslt a1c
       ON a1c.result_dt >= dt.year_back_dt AND a1c.result_dt < dt.report_dt -- OK: this condition is not probably needed but it does not hurt to have it
     LEFT JOIN dconv.mdm_qcpr_pt_02122016 mdm
-      ON mdm.network = a1c.network AND TO_NUMBER(mdm.patientid) = a1c.patient_id AND mdm.epic_flag = 'N'
+      ON mdm.network = a1c.network AND mdm.patientid = TO_CHAR(a1c.patient_id) AND mdm.epic_flag = 'N'
   ),
   pcp_info AS
   (
