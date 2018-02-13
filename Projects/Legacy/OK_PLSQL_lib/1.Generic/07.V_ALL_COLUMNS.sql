@@ -2,7 +2,7 @@ CREATE OR REPLACE VIEW v_all_columns AS
 SELECT
   owner, table_name, column_name, column_id,
   CASE
-    WHEN data_type IN ('CHAR', 'VARCHAR2', 'RAW', 'NCHAR', 'NVARCHAR2') THEN data_type||'('||char_length||')'
+    WHEN data_type IN ('CHAR', 'VARCHAR2', 'RAW', 'NCHAR', 'NVARCHAR2') THEN data_type||'('||char_length||' '||DECODE(char_used, 'B', 'BYTE', 'C', 'CHAR')||')'
     WHEN data_type = 'NUMBER' AND data_precision IS NULL AND data_scale IS NULL THEN 'NUMBER'
     WHEN data_type = 'NUMBER' AND data_precision IS NULL AND data_scale = 0 THEN 'INTEGER'
     WHEN data_type = 'NUMBER' AND data_scale = 0 THEN 'NUMBER('||data_precision||')'
