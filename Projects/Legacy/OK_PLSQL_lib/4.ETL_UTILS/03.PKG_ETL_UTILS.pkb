@@ -155,13 +155,13 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     END LOOP;
   END;
  
-  -- Procedure ADD_DATA selects data from the specified source table or view (I_SRC)
-  -- using optional WHERE (I_WHR) condition.
-  -- Depending on I_OPERATION, it either merges or inserts the source data into the Target table (I_TGT).
-  -- The output parameter O_ADD_CNT gets the number of rows added to the target table.
-  -- O_ERR_CNT gets the number of source rows that have been rejected and placed in the error table (O_ERRTAB).
-  -- Note: if O_ERRTAB is not specified, then this procedure errors-out
-  -- if at least one source row cannot be placed in the target table.
+  -- Procedure ADD_DATA selects data from the specified source table or view (P_SRC)
+  -- using optional WHERE condition (P_WHR).
+  -- Depending on P_OPERATION, it either merges or inserts the source data into the Target table (P_TGT).
+  -- The output parameter P_ADD_CNT gets the number of rows added to the target table.
+  -- P_ERR_CNT gets the number of source rows that were rejected and placed in the error table (P_ERRTAB).
+  -- Note: if P_ERRTAB is not specified, then this procedure errors-out
+  -- if at least one source row cannot be placed into the target table.
   PROCEDURE add_data
   (
     p_operation     IN VARCHAR2, -- 'INSERT', 'UPDATE', 'MERGE', 'APPEND', 'REPLACE' or 'EQUALIZE'
@@ -482,7 +482,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     p_commit_at   IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
     p_uk_col_list IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
     p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
-    p_delete_cnd    IN VARCHAR2 DEFAULT NULL -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy thise condition 
+    p_delete_cnd    IN VARCHAR2 DEFAULT NULL -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy this condition 
   ) IS
     l_add_cnt PLS_INTEGER;
     l_err_cnt PLS_INTEGER;

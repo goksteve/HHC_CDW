@@ -41,13 +41,13 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
   FUNCTION get_column_info(p_table IN VARCHAR2) RETURN tab_column_info PIPELINED;
 
 
-  -- Procedure ADD_DATA selects data from the specified source table or view (I_SRC)
-  -- using optional WHERE (I_WHR) condition.
-  -- Depending on I_OPERATION, it either merges or inserts the source data into the Target table (I_TGT).
-  -- The output parameter O_ADD_CNT gets the number of rows added to the target table.
-  -- O_ERR_CNT gets the number of source rows that have been rejected and placed in the error table (O_ERRTAB).
-  -- Note: if O_ERRTAB is not specified, then this procedure errors-out
-  -- if at least one source row cannot be placed in the target table.
+  -- Procedure ADD_DATA selects data from the specified source table or view (P_SRC)
+  -- using optional WHERE condition (P_WHR).
+  -- Depending on P_OPERATION, it either merges or inserts the source data into the Target table (P_TGT).
+  -- The output parameter P_ADD_CNT gets the number of rows added to the target table.
+  -- P_ERR_CNT gets the number of source rows that were rejected and placed in the error table (P_ERRTAB).
+  -- Note: if P_ERRTAB is not specified, then this procedure errors-out
+  -- if at least one source row cannot be placed into the target table.
   PROCEDURE add_data
   (
     p_operation     IN VARCHAR2, -- 'INSERT', 'UPDATE', 'MERGE', 'APPEND', 'REPLACE' or 'EQUALIZE'
@@ -59,7 +59,7 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
     p_commit_at     IN NUMBER   DEFAULT 0, -- 0 - do not commit, otherwise commit
     p_uk_col_list   IN VARCHAR2 DEFAULT NULL, -- optional UK column list to use in MERGE operation instead of PK columns
     p_changes_only  IN VARCHAR2 DEFAULT 'N', -- if 'Y', the MERGE operation should check that at least one non-key value will be changed
-    p_delete_cnd    IN VARCHAR2 DEFAULT NULL, -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy these condition 
+    p_delete_cnd    IN VARCHAR2 DEFAULT NULL, -- if specified, the MERGE operation will delete the target table rows if the matching source rows satisfy this condition 
     p_add_cnt       IN OUT PLS_INTEGER, -- number of added/changed rows
     p_err_cnt       IN OUT PLS_INTEGER  -- number of errors
   );
@@ -81,11 +81,11 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
   );
 
 
-  -- Procedure DELETE_DATA deletes from the Target table (I_TGT)
-  -- the data that exists (I_NOT_IN='N') or not exists (I_NOT_IN='Y')
-  -- in the source table/view (I_SRC)
+  -- Procedure DELETE_DATA deletes from the Target table (P_TGT)
+  -- the data that exists (P_NOT_IN='N') or not exists (P_NOT_IN='Y')
+  -- in the source table/view (P_SRC)
   -- matching rows by either all the columns of the target table Primary Key (default)
-  -- or by the given list of unique columns (I_UK_COL_LIST).
+  -- or by the given list of unique columns (P_UK_COL_LIST).
   PROCEDURE delete_data
   (
     p_tgt         IN VARCHAR2, -- target table to delete rows from
