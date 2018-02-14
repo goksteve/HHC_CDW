@@ -7,8 +7,8 @@ CREATE OR REPLACE PACKAGE pkg_etl_utils AS
 
   History of changes (newest to oldest):
   ------------------------------------------------------------------------------
-  02-FEB-2018, OK: added parameter P_DELETE_CND;
-  01-FEB-2018, OK: added parameter P_CHANGES_ONLY to ADD_DATA;
+  02-FEB-2018, OK: added parameter P_DELETE_CND to ADD_DATA procedure;
+  01-FEB-2018, OK: added parameter P_CHANGES_ONLY to ADD_DATA procedure;
   10-Nov-2015, OK: new version
 */
 

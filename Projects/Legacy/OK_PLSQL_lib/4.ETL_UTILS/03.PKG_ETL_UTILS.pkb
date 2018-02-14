@@ -5,7 +5,9 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
   Package for performing ETL tasks
   History of changes (newest to oldest):
   ------------------------------------------------------------------------------
-  01-FEB-2018, OK: added parameter P_CHANGES_ONLY to ADD_DATA;
+  14-FEB-2018, OK: simplified MERGE statement in ADD_DATA procedure;
+  02-FEB-2018, OK: added parameter P_DELETE_CND to ADD_DATA procedure;
+  01-FEB-2018, OK: added parameter P_CHANGES_ONLY to ADD_DATA procedure;
 */
   -- Procedure RESOLVE_NAME resolves the given table/view/synonym name
   -- into complete description of the underlying table/view:
@@ -405,11 +407,14 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     ELSE -- "one-shot" load with or without commit
       l_cmd :=
       CASE WHEN l_operation IN ('UPDATE', 'MERGE') THEN '
-      MERGE '||l_hint1||' INTO '||p_tgt||' t USING
+      MERGE '||l_hint1||' INTO '||p_tgt||' t USING ' || 
+        CASE WHEN p_whr IS NOT NULL OR l_hint2 IS NOT NULL THEN '
       (
         SELECT '||l_hint2||' *
         FROM '||NVL(l_view_name, p_src)||' '||p_whr||'
-      ) q
+      )'
+        ELSE NVL(l_view_name, p_src)
+        END || ' q
       ON ('||l_on_list||')'||
         CASE WHEN l_upd_cols IS NOT NULL THEN '
       WHEN MATCHED THEN UPDATE SET '||l_upd_cols||

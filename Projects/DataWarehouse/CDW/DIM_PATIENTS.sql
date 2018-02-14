@@ -92,8 +92,6 @@ CREATE UNIQUE INDEX uk_dim_patient ON dim_patients
 ALTER INDEX pk_dim_patients NOPARALLEL;
 ALTER INDEX uk_dim_patient NOPARALLEL;
 
-ALTER TABLE dim_patients drop CONSTRAINT dummy_dim_patients;
-
  UNIQUE(patient_id, network, current_flag) DISABLE;
 
 CREATE OR REPLACE SYNONYM dim_patient FOR dim_patients;

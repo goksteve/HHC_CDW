@@ -40,13 +40,11 @@ SUBPARTITION BY HASH(visit_id) SUBPARTITIONS 16
   PARTITION smn VALUES('SMN')
 );
 
-insert --+ parallel(32)
-into proc_event_archive
-select network, visit_id, event_id, archive_number, archive_type_id, emp_provider_id, event_status_id, archive_time, arch_comment, result_report_nbr, review_comment, order_visit_id, spec_coll_time, spec_coll_emp_provider_id, off_line_doc_time, off_line_emp_provider_id, spec_receiving_area_id, spec_auto_accept_flg, cid, device_id, scheduled_abs_time_type_id, scheduled_abs_time, context_visit_id, scheduled_abs_end_time, scheduled_abs_string
-from proc_event_archive_nbx;
-
 CREATE UNIQUE INDEX pk_proc_event_archive ON proc_event_archive(event_id, visit_id, archive_number, network) LOCAL PARALLEL 32;
-
 ALTER INDEX pk_proc_event_archive NOPARALLEL;
 
-ALTER TABLE proc_event ADD CONSTRAINT pk_proc_event_archive PRIMARY KEY(network, visit_id, event_id, archive_number) USING INDEX pk_proc_event_archive;
+CREATE INDEX idx_proc_event_archive_cid ON proc_event_archive(cid, network) LOCAL PARALLEL 32;
+ALTER INDEX idx_proc_event_archive_cid NOPARALLEL;
+
+ALTER TABLE proc_event_archive ADD CONSTRAINT pk_proc_event_archive
+ PRIMARY KEY(network, visit_id, event_id, archive_number) USING INDEX pk_proc_event_archive;
