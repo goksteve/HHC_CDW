@@ -494,11 +494,11 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     );
   END;
  
-  -- Procedure DELETE_DATA deletes from the target table (I_TGT)
-  -- the data that exists (I_NOT_IN='N') or not exists (I_NOT_IN='Y')
-  -- in the source table/view (I_SRC)
+  -- Procedure DELETE_DATA deletes from the target table (P_TGT)
+  -- the data that exists (P_NOT_IN='N') or not exists (P_NOT_IN='Y')
+  -- in the source table/view (P_SRC)
   -- matching rows by either all the columns of the target table Primary Key (default)
-  -- or by the given list of unique columns (I_UK_COL_LIST).
+  -- or by the given list of unique columns (P_UK_COL_LIST).
   PROCEDURE delete_data
   (
     p_tgt         IN VARCHAR2, -- target table to delete rows from
