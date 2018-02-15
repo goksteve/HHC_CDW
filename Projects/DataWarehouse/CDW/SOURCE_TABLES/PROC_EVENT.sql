@@ -1,4 +1,6 @@
-CREATE TABLE proc_event
+exec dbm.drop_tables('PROC_EVENT');
+
+CREATE TABLE new_proc_event
 (
   network                         CHAR(3 BYTE) NOT NULL,
   visit_id                        NUMBER(12) NOT NULL,

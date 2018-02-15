@@ -1,14 +1,16 @@
+EXEC dbm.drop_tables('EVENT');
+
 CREATE TABLE event
 (
-  NETWORK                   CHAR(3 BYTE),
-  VISIT_ID                  NUMBER(12) NOT NULL,
-  EVENT_ID                  NUMBER(15) NOT NULL,
-  DATE_TIME                 DATE,
-  EVENT_STATUS_ID           NUMBER(12),
-  EVENT_TYPE_ID             NUMBER(12),
-  PATIENT_SCHEDULE_DISPLAY  VARCHAR2(100 BYTE),
-  CID                       NUMBER(14),
-  EVENT_INTERFACE_ID        VARCHAR2(128 BYTE)
+  network                   CHAR(3 BYTE) NOT NULL,
+  visit_id                  NUMBER(12) NOT NULL,
+  event_id                  NUMBER(15) NOT NULL,
+  date_time                 DATE,
+  event_status_id           NUMBER(12),
+  event_type_id             NUMBER(12),
+  patient_schedule_display  VARCHAR2(100 BYTE),
+  cid                       NUMBER(14),
+  event_interface_id        VARCHAR2(128 BYTE)
 )
 COMPRESS BASIC
 PARTITION BY LIST(network)
@@ -27,7 +29,9 @@ SUBPARTITION BY HASH(visit_id) SUBPARTITIONS 16
 CREATE UNIQUE INDEX pk_event ON event(event_id, visit_id, network) LOCAL PARALLEL 32;
 ALTER INDEX pk_event NOPARALLEL;
 
-CREATE INDEX idx_event_cid ON event(cid, network) LOCAL PARALLEL 32;;
+CREATE INDEX idx_event_cid ON event(cid, network) LOCAL PARALLEL 32;
 ALTER INDEX idx_event_cid NOPARALLEL;
 
-GRANT SELECT ON EVENT_GP1 TO PUBLIC;
+ALTER TABLE event ADD CONSTRAINT pk_event PRIMARY KEY(network, visit_id, event_id) USING INDEX pk_event;
+
+GRANT SELECT ON event TO PUBLIC;

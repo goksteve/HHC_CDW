@@ -61,6 +61,9 @@ ALTER INDEX pk_visit NOPARALLEL;
 CREATE INDEX idx_visit_cid ON visit(cid, network) LOCAL PARALLEL 16;
 ALTER INDEX idx_visit_cid NOPARALLEL;
  
+CREATE INDEX idx_visit_admdt ON visit(admission_date_time, network) LOCAL PARALLEL 16;
+ALTER INDEX idx_visit_admdt NOPARALLEL;
+ 
 ALTER TABLE visit ADD CONSTRAINT pk_visit PRIMARY KEY(visit_id, network) USING INDEX pk_visit;
 
 

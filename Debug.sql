@@ -31,27 +31,10 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id IN (48)
+where proc_id IN (50)
 order by tstamp;
 
 select proc_id, action, cnt, seconds 
 from dbg_performance_data 
-where proc_id = 35
+where proc_id = 48
 order by seconds desc;
-
-select *
-from
-(
-  select proc_id, action, cnt, seconds 
-  from dbg_performance_data 
-  where proc_id in (137,138)
---  and action like 'Adding%'
-)
-pivot 
-(
-  max(cnt) cnt,
-  max(seconds) sec
-  for proc_id in (98, 100)
-)
-order by 3 desc;
-

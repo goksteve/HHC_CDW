@@ -17,7 +17,7 @@ from
   from v_all_columns
   where 1=1
   and owner in (/*'EPIC_CLARITY','UD_MASTER','HHC_CUSTOM',*/'CDW'/*,'PT005'*/)
-  and table_name = 'PROC_EVENT_ARCHIVE'
+  and table_name = 'VISIT'
 --  and column_name like 'FIN%CLASS%'
 --  and column_name in ('ORDER_SPAN_STATE_ID')
   group by owner, table_name
