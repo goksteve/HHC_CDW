@@ -17,7 +17,7 @@ CREATE SEQUENCE seq_dim_hc_departments_key;
 
 CREATE TABLE dim_hc_departments
 (
-  department_key  NUMBER(10) CONSTRAINT pk_dim_hc_departments PRIMARY KEY,
+  department_key  NUMBER(12) CONSTRAINT pk_dim_hc_departments PRIMARY KEY,
   network         CHAR(3 BYTE) NOT NULL,
   location_id     VARCHAR2(12 BYTE) NOT NULL,
   facility_key    NUMBER(10) NOT NULL,
