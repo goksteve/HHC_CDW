@@ -303,7 +303,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
       l_view_name := 'ETL_'||xl.get_current_proc_id;
       l_src_tname := l_view_name;
       l_cmd := 'CREATE VIEW '||l_view_name||' AS '||p_src;
-      xl.begin_action('Creating view '||l_view_name, l_cmd, FALSE);
+      xl.begin_action('Creating view '||l_view_name, l_cmd);
       EXECUTE IMMEDIATE l_cmd;
       xl.end_action;
     ELSE
@@ -462,7 +462,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_etl_utils AS
     
     IF l_view_name IS NOT NULL THEN
       l_cmd := 'DROP VIEW '||l_view_name;
-      xl.begin_action('Dropping view '||l_view_name, l_cmd, FALSE);
+      xl.begin_action('Dropping view '||l_view_name, l_cmd);
       EXECUTE IMMEDIATE l_cmd;
       xl.end_action;
     END IF; 

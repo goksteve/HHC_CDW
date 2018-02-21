@@ -1,6 +1,6 @@
 exec dbm.drop_tables('PROC_EVENT');
 
-CREATE TABLE new_proc_event
+CREATE TABLE proc_event
 (
   network                         CHAR(3 BYTE) NOT NULL,
   visit_id                        NUMBER(12) NOT NULL,
@@ -42,7 +42,54 @@ SUBPARTITION BY HASH(visit_id) SUBPARTITIONS 16
 );
 
 CREATE UNIQUE INDEX pk_proc_event ON proc_event(event_id, visit_id, network) LOCAL PARALLEL 32;
-
 ALTER INDEX pk_proc_event NOPARALLEL;
 
 ALTER TABLE proc_event ADD CONSTRAINT pk_proc_event PRIMARY KEY(network, visit_id, event_id) USING INDEX pk_proc_event;
+
+CREATE INDEX idx_proc_event_cid ON proc_event(cid, network) LOCAL PARALLEL 32;
+ALTER INDEX idx_proc_event_cid noparallel;
+
+CREATE OR REPLACE TRIGGER tr_insert_proc_event
+FOR INSERT OR UPDATE ON proc_event
+COMPOUND TRIGGER
+  BEFORE STATEMENT IS
+  BEGIN
+    dwm.init_max_cids('PROC_EVENT');
+  END BEFORE STATEMENT;
+
+  AFTER EACH ROW IS
+  BEGIN
+    dwm.max_cids(:new.network) := GREATEST(dwm.max_cids(:new.network), :new.cid);
+  END AFTER EACH ROW;
+
+  AFTER STATEMENT IS
+  BEGIN
+    dwm.record_max_cids('PROC_EVENT');
+  END AFTER STATEMENT;
+END tr_insert_proc_event;
+/
+
+-- Indexes on Vishnu's staging tables:
+create index idx_proc_event_cbn_cid on proc_event_cbn(cid) parallel 32;
+alter index idx_proc_event_cbn_cid noparallel;
+
+create index idx_proc_event_gp1_cid on proc_event_gp1(cid) parallel 32;
+alter index idx_proc_event_gp1_cid noparallel;
+
+create index idx_proc_event_gp2_cid on proc_event_gp2(cid) parallel 32;
+alter index idx_proc_event_gp2_cid noparallel;
+
+create index idx_proc_event_nbn_cid on proc_event_nbn(cid) parallel 32;
+alter index idx_proc_event_nbn_cid noparallel;
+
+create index idx_proc_event_nbx_cid on proc_event_nbx(cid) parallel 32;
+alter index idx_proc_event_nbx_cid noparallel;
+
+create index idx_proc_event_qhn_cid on proc_event_qhn(cid) parallel 32;
+alter index idx_proc_event_qhn_cid noparallel;
+
+create index idx_proc_event_sbn_cid on proc_event_sbn(cid) parallel 32;
+alter index idx_proc_event_sbn_cid noparallel;
+
+create index idx_proc_event_smn_cid on proc_event_smn(cid) parallel 32;
+alter index idx_proc_event_smn_cid noparallel;

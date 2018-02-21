@@ -1,0 +1,2 @@
+exec dbms_session.session_trace_disable
+@tr

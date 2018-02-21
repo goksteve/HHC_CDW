@@ -31,10 +31,20 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id IN (50)
-order by tstamp;
+where proc_id IN (74)
+order by tstamp desc;
 
 select proc_id, action, cnt, seconds 
 from dbg_performance_data 
-where proc_id = 48
+where proc_id = 71
 order by seconds desc;
+
+select * from err_event;
+
+select * from etl_incremental_data_load_log;
+
+insert --+ parallel(32)
+into etl_incremental_data_load_log
+select 'PROC_EVENT', network, max(cid), null, sysdate
+from proc_event
+group by network;

@@ -1,18 +1,18 @@
-drop table result purge;
+exec dbm.drop_tables('RESULT');
 
 CREATE TABLE result
 (
   network                        CHAR(3 BYTE) NOT NULL,
-  VISIT_ID                       NUMBER(12)     NOT NULL,
-  EVENT_ID                       NUMBER(12)     NOT NULL,
-  RESULT_REPORT_NUMBER           NUMBER(12)     NOT NULL,
-  DATA_ELEMENT_ID                VARCHAR2(25 BYTE) NOT NULL,
-  MULTI_FIELD_OCCURRENCE_NUMBER  NUMBER(3)      DEFAULT 1 NOT NULL,
-  ITEM_NUMBER                    NUMBER(3)      DEFAULT 1 NOT NULL,
-  VALUE                          VARCHAR2(1023 BYTE),
-  ABNORMAL_STATE_ID              VARCHAR2(3 BYTE),
-  USED                           CHAR(1 BYTE),
-  CID                            NUMBER DEFAULT to_number(TO_CHAR(sysdate,'YYYYMMDDHH24MISS'))
+  visit_id                       NUMBER(12) NOT NULL,
+  event_id                       NUMBER(12) NOT NULL,
+  result_report_number           NUMBER(12) NOT NULL,
+  data_element_id                VARCHAR2(25 BYTE) NOT NULL,
+  multi_field_occurrence_number  NUMBER(3) DEFAULT 1 NOT NULL,
+  item_number                    NUMBER(3) DEFAULT 1 NOT NULL,
+  value                          VARCHAR2(1023 BYTE),
+  abnormal_state_id              VARCHAR2(3 BYTE),
+  used                           CHAR(1 BYTE),
+  cid                            NUMBER DEFAULT to_number(TO_CHAR(sysdate,'YYYYMMDDHH24MISS'))
 ) COMPRESS BASIC
 PARTITION BY LIST(network)
 SUBPARTITION BY HASH(visit_id) SUBPARTITIONS 16
@@ -36,3 +36,7 @@ ALTER INDEX pk_result NOPARALLEL;
 ALTER TABLE result ADD CONSTRAINT pk_result
  PRIMARY KEY(network, visit_id, event_id, data_element_id, result_report_number, multi_field_occurrence_number, item_number)
  USING INDEX pk_result;
+
+CREATE BITMAP INDEX bmi_result_element_id
+ON result(data_element_id, network)
+LOCAL PARALLEL 32;

@@ -1,3 +1,5 @@
+exec dbm.drop_tables('VISIT,ERR_VISIT');
+
 CREATE TABLE visit
 (
   NETWORK                        CHAR(3 BYTE) NOT NULL,
@@ -10,7 +12,7 @@ CREATE TABLE visit
   FACILITY_ID                    NUMBER(12),
   ATTENDING_EMP_PROVIDER_ID      NUMBER(12),
   RESIDENT_EMP_PROVIDER_ID       NUMBER(12),
-  ADMISSION_DATE_TIME            DATE,
+  ADMISSION_DATE_TIME            DATE CONSTRAINT chk_visit_adm_dt CHECK (admission_date_time >= DATE '2014-01-01') DISABLE,
   DISCHARGE_DATE_TIME            DATE,
   DISCHARGE_TYPE_ID              NUMBER(12),
   MARITAL_STATUS_ID              NUMBER(12),
@@ -66,5 +68,5 @@ ALTER INDEX idx_visit_admdt NOPARALLEL;
  
 ALTER TABLE visit ADD CONSTRAINT pk_visit PRIMARY KEY(visit_id, network) USING INDEX pk_visit;
 
-
-
+exec DBMS_ERRLOG.CREATE_ERROR_LOG('VISIT','ERR_VISIT');
+ALTER TABLE err_visit ADD entry_ts TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL;

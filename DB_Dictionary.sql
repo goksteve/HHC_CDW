@@ -13,7 +13,7 @@ from
 (
   select
     owner, table_name,
-    listagg(lower(column_name), ', ') within group(order by column_id) col_list, count(1) cnt
+    listagg(lower(column_name)||', ') within group(order by column_id) col_list, count(1) cnt
   from v_all_columns
   where 1=1
   and owner in (/*'EPIC_CLARITY','UD_MASTER','HHC_CUSTOM',*/'CDW'/*,'PT005'*/)
