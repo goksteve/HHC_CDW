@@ -31,7 +31,7 @@ from
 order by proc_id desc;
 
 select * from dbg_log_data
-where proc_id IN (83)
+where proc_id IN (90)
 order by tstamp desc;
 
 select proc_id, action, cnt, seconds 

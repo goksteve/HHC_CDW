@@ -15,7 +15,7 @@ CREATE OR REPLACE PACKAGE pkg_dw_maintenance AS
   
   PROCEDURE record_max_cids(p_table_name IN VARCHAR2); -- saves new MAX_CIDS values in the table ETL_MAX_CIDS;
 
-  PROCEDURE refresh_data(p_table_list VARCHAR2 DEFAULT NULL);
+  PROCEDURE refresh_data(p_condition IN VARCHAR2 DEFAULT NULL);
 END;
 /
 

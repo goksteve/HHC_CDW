@@ -19,6 +19,8 @@ truncate table cnf_dw_refresh;
 
 INSERT INTO cnf_dw_refresh VALUES(10, 'MERGE', 'REF_ORDER_TYPES', NULL, 'SELECT DISTINCT order_type_id, name FROM order_type', NULL, NULL, NULL, NULL);
 INSERT INTO cnf_dw_refresh VALUES(11, 'MERGE', 'REF_VISIT_TYPES', NULL, 'SELECT DISTINCT visit_type_id, name, abbreviation FROM visit_type', NULL, NULL, NULL, NULL);
+INSERT INTO cnf_dw_refresh VALUES(12, 'MERGE', 'REF_HC_SPECIALTIES', NULL, 'V_REF_HC_SPECIALTIES', NULL, NULL, NULL, NULL);
+
 INSERT INTO cnf_dw_refresh VALUES(20, 'MERGE', 'REF_PROC_EVENT_ARCHIVE_TYPES', NULL, 'SELECT DISTINCT archive_type_id, name FROM proc_event_archive_type', NULL, 'WHERE archive_type_id <> 0', NULL, NULL);
 INSERT INTO cnf_dw_refresh VALUES(50, 'MERGE', 'DIM_PAYERS', NULL, 'PT008.PAYER_MAPPING', 'NETWORK,PAYER_ID', NULL, NULL, NULL);
 INSERT INTO cnf_dw_refresh VALUES(90, 'MERGE /*+ PARALLEL(16)*/', 'REF_DIAGNOSES', NULL, 'V_REF_DIAGNOSES', NULL, NULL, 'DELETE_FLAG=''Y''', NULL);

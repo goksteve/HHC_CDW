@@ -48,18 +48,18 @@ CREATE OR REPLACE PACKAGE BODY pkg_dw_maintenance AS
   END;
   
   
-  PROCEDURE refresh_data(p_table_list VARCHAR2 DEFAULT NULL) IS
+  PROCEDURE refresh_data(p_condition IN VARCHAR2 DEFAULT NULL) IS
     rcur  SYS_REFCURSOR;
     rec   cnf_dw_refresh%ROWTYPE;
   BEGIN
-    xl.open_log('DWM.REFRESH_DATA', 'Refreshing DW'||CASE WHEN p_table_list IS NOT NULL THEN ': '||p_table_list END, TRUE);
+    xl.open_log('DWM.REFRESH_DATA', 'Refreshing DW'||CASE WHEN p_condition IS NOT NULL THEN ': '||p_condition END, TRUE);
     
     EXECUTE IMMEDIATE 'ALTER SESSION ENABLE PARALLEL DML';
     
     OPEN rcur FOR
     'SELECT * FROM cnf_dw_refresh'||
-    CASE WHEN p_table_list IS NOT NULL THEN '
-    WHERE target_table IN ('''||REPLACE(UPPER(p_table_list), ',', ''',''')||''')' 
+    CASE WHEN p_condition IS NOT NULL THEN '
+    WHERE '||p_condition 
     END || '
     ORDER BY etl_step_num';
     
