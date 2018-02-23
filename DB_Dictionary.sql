@@ -2,9 +2,9 @@ alter session set current_schema = cdw;
 
 select
 --  owner, table_name, 
-  column_name, data_type
+  lower(column_name)||',' col_name, data_type
 from v_all_columns
-where owner = 'UD_MASTER' AND table_name = 'PROC_EVENT'
+where owner = 'CDW' AND table_name = 'FACT_RESULTS'
 order by column_id;
 
 
@@ -17,7 +17,7 @@ from
   from v_all_columns
   where 1=1
   and owner in (/*'EPIC_CLARITY','UD_MASTER','HHC_CUSTOM',*/'CDW'/*,'PT005'*/)
-  and table_name = 'VISIT'
+  and table_name = 'VALUE_DECODE'
 --  and column_name like 'FIN%CLASS%'
 --  and column_name in ('ORDER_SPAN_STATE_ID')
   group by owner, table_name

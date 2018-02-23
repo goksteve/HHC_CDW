@@ -40,3 +40,29 @@ ALTER TABLE result ADD CONSTRAINT pk_result
 CREATE BITMAP INDEX bmi_result_element_id
 ON result(data_element_id, network)
 LOCAL PARALLEL 32;
+
+create index idx_result_cbn_cid on result_cbn(cid) parallel 32;
+alter index idx_result_cbn_cid noparallel;
+
+create index idx_result_gp1_cid on result_gp1(cid) parallel 32;
+alter index idx_result_gp1_cid noparallel;
+
+create index idx_result_gp2_cid on result_gp2(cid) parallel 32;
+alter index idx_result_gp2_cid noparallel;
+
+create index idx_result_nbn_cid on result_nbn(cid) parallel 32;
+alter index idx_result_nbn_cid noparallel;
+
+create index idx_result_nbx_cid on result_nbx(cid) parallel 32;
+alter index idx_result_nbx_cid noparallel;
+
+create index idx_result_qhn_cid on result_qhn(cid) parallel 32;
+alter index idx_result_qhn_cid noparallel;
+
+create index idx_result_sbn_cid on result_sbn(cid) parallel 32;
+alter index idx_result_sbn_cid noparallel;
+
+create index idx_result_smn_cid on result_smn(cid) parallel 32;
+alter index idx_result_smn_cid noparallel;
+
+drop index cidx_result_smn;

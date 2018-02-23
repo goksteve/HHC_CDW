@@ -24,12 +24,13 @@ CREATE TABLE dim_hc_facilities
   zip_cd          VARCHAR2(10 BYTE),
   source          VARCHAR2(30) NOT NULL,
   network         CHAR(3 BYTE) NOT NULL,
-  src_facility_id NUMBER(2) NOT NULL,
+  facility_id     NUMBER(2) NOT NULL,
   load_dt         DATE DEFAULT SYSDATE NOT NULL,
   loaded_by       VARCHAR2(30 BYTE) DEFAULT SYS_CONTEXT('USERENV','OS_USER'),
-  CONSTRAINT uk_dim_hc_facilities_id UNIQUE(network, src_facility_id, source) USING INDEX COMPRESS,
   CONSTRAINT fk_dim_hc_facil_network FOREIGN KEY(network) REFERENCES dim_hc_networks
 ) COMPRESS BASIC;
+
+ALTER TABLE dim_hc_facilities ADD CONSTRAINT uk_dim_hc_facilities_id UNIQUE(network, facility_id) USING INDEX COMPRESS;
 
 GRANT SELECT ON dim_hc_facilities TO PUBLIC;
 

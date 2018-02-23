@@ -24,12 +24,14 @@ CREATE TABLE dim_procedures
   source        VARCHAR2(60 BYTE) NOT NULL,
   network       CHAR(3 BYTE) NOT NULL,
   src_proc_id   NUMBER(10) NOT NULL,
+  facility_key  NUMBER(12),
   load_dt       DATE DEFAULT SYSDATE NOT NULL,
-  loaded_by     VARCHAR2(30 BYTE) DEFAULT SYS_CONTEXT('USERENV','OS_USER') NOT NULL,
-  CONSTRAINT uk_dim_procedures UNIQUE(source, network, src_proc_id)
+  loaded_by     VARCHAR2(30 BYTE) DEFAULT SYS_CONTEXT('USERENV','OS_USER') NOT NULL
 ) COMPRESS BASIC;
 
 GRANT SELECT ON dim_procedures TO PUBLIC;
+
+ALTER TABLE dim_procedures ADD CONSTRAINT uk_dim_procedures UNIQUE(source, network, src_proc_id);
 
 CREATE SEQUENCE seq_dim_procedure_key;
 

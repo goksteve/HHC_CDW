@@ -13,7 +13,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_dw_maintenance AS
     (
       SELECT nw.network, NVL(etl.max_cid, 0) max_cid
       FROM dim_hc_networks nw
-      LEFT JOIN etl_incremental_data_load_log etl ON etl.table_name = p_table_name AND etl.network = nw.network
+      LEFT JOIN log_incremental_data_load etl ON etl.table_name = p_table_name AND etl.network = nw.network
     )
     LOOP
       dwm.max_cids(r.network) := r.max_cid;
@@ -27,7 +27,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_dw_maintenance AS
     idx := dwm.max_cids.FIRST;
     
     WHILE idx IS NOT NULL LOOP
-      MERGE INTO etl_incremental_data_load_log t
+      MERGE INTO log_incremental_data_load t
       USING
       (
         SELECT

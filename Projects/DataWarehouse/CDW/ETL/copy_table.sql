@@ -1,3 +1,9 @@
+set verify off
+set echo off
+set feedback off
+set arraysize 5000
+set copycommit 2
+
 define SCHEMA=&1
 define TABLE=&2
 
