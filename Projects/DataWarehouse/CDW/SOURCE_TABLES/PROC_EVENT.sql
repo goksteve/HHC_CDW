@@ -68,28 +68,3 @@ COMPOUND TRIGGER
   END AFTER STATEMENT;
 END tr_insert_proc_event;
 /
-
--- Indexes on Vishnu's staging tables:
-create index idx_proc_event_cbn_cid on proc_event_cbn(cid) parallel 32;
-alter index idx_proc_event_cbn_cid noparallel;
-
-create index idx_proc_event_gp1_cid on proc_event_gp1(cid) parallel 32;
-alter index idx_proc_event_gp1_cid noparallel;
-
-create index idx_proc_event_gp2_cid on proc_event_gp2(cid) parallel 32;
-alter index idx_proc_event_gp2_cid noparallel;
-
-create index idx_proc_event_nbn_cid on proc_event_nbn(cid) parallel 32;
-alter index idx_proc_event_nbn_cid noparallel;
-
-create index idx_proc_event_nbx_cid on proc_event_nbx(cid) parallel 32;
-alter index idx_proc_event_nbx_cid noparallel;
-
-create index idx_proc_event_qhn_cid on proc_event_qhn(cid) parallel 32;
-alter index idx_proc_event_qhn_cid noparallel;
-
-create index idx_proc_event_sbn_cid on proc_event_sbn(cid) parallel 32;
-alter index idx_proc_event_sbn_cid noparallel;
-
-create index idx_proc_event_smn_cid on proc_event_smn(cid) parallel 32;
-alter index idx_proc_event_smn_cid noparallel;

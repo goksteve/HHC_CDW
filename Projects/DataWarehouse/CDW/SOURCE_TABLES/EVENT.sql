@@ -59,28 +59,3 @@ END tr_insert_event;
 
 exec DBMS_ERRLOG.CREATE_ERROR_LOG('EVENT','ERR_EVENT');
 ALTER TABLE err_event ADD entry_ts TIMESTAMP DEFAULT SYSTIMESTAMP;
-
--- Indexes on Vishnu's staging tables:
-create index idx_event_cbn_cid on event_cbn(cid) parallel 32;
-alter index idx_event_cbn_cid noparallel;
-
-create index idx_event_gp1_cid on event_gp1(cid) parallel 32;
-alter index idx_event_gp1_cid noparallel;
-
-create index idx_event_gp2_cid on event_gp2(cid) parallel 32;
-alter index idx_event_gp2_cid noparallel;
-
-create index idx_event_nbn_cid on event_nbn(cid) parallel 32;
-alter index idx_event_nbn_cid noparallel;
-
-create index idx_event_nbx_cid on event_nbx(cid) parallel 32;
-alter index idx_event_nbx_cid noparallel;
-
-create index idx_event_sbn_cid on event_sbn(cid) parallel 32;
-alter index idx_event_sbn_cid noparallel;
-
-create index idx_event_smn_cid on event_smn(cid) parallel 32;
-alter index idx_event_smn_cid noparallel;
-
-create index idx_event_qhn_cid on event_qhn(cid) parallel 32;
-alter index idx_event_qhn_cid noparallel;

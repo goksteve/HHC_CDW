@@ -37,32 +37,25 @@ ALTER TABLE result ADD CONSTRAINT pk_result
  PRIMARY KEY(network, visit_id, event_id, data_element_id, result_report_number, multi_field_occurrence_number, item_number)
  USING INDEX pk_result;
 
-CREATE BITMAP INDEX bmi_result_element_id
-ON result(data_element_id, network)
-LOCAL PARALLEL 32;
+CREATE INDEX idx_result_cid ON result(cid, network) LOCAL PARALLEL 32;
+ALTER INDEX idx_result_cid NOPARALLEL;
 
-create index idx_result_cbn_cid on result_cbn(cid) parallel 32;
-alter index idx_result_cbn_cid noparallel;
+CREATE OR REPLACE TRIGGER tr_insert_result
+FOR INSERT OR UPDATE ON result
+COMPOUND TRIGGER
+  BEFORE STATEMENT IS
+  BEGIN
+    dwm.init_max_cids('RESULT');
+  END BEFORE STATEMENT;
 
-create index idx_result_gp1_cid on result_gp1(cid) parallel 32;
-alter index idx_result_gp1_cid noparallel;
+  AFTER EACH ROW IS
+  BEGIN
+    dwm.max_cids(:new.network) := GREATEST(dwm.max_cids(:new.network), :new.cid);
+  END AFTER EACH ROW;
 
-create index idx_result_gp2_cid on result_gp2(cid) parallel 32;
-alter index idx_result_gp2_cid noparallel;
-
-create index idx_result_nbn_cid on result_nbn(cid) parallel 32;
-alter index idx_result_nbn_cid noparallel;
-
-create index idx_result_nbx_cid on result_nbx(cid) parallel 32;
-alter index idx_result_nbx_cid noparallel;
-
-create index idx_result_qhn_cid on result_qhn(cid) parallel 32;
-alter index idx_result_qhn_cid noparallel;
-
-create index idx_result_sbn_cid on result_sbn(cid) parallel 32;
-alter index idx_result_sbn_cid noparallel;
-
-create index idx_result_smn_cid on result_smn(cid) parallel 32;
-alter index idx_result_smn_cid noparallel;
-
-drop index cidx_result_smn;
+  AFTER STATEMENT IS
+  BEGIN
+    dwm.record_max_cids('RESULT');
+  END AFTER STATEMENT;
+END tr_insert_result;
+/
